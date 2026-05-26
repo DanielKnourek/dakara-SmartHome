@@ -1,0 +1,252 @@
+configs:
+  entrypoint:
+    content: >-
+      #!/bin/sh
+
+      set -e
+
+      node dist/index.js config set gateway.auth.mode password
+
+      node dist/index.js config set
+      gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
+
+      node dist/index.js config set gateway.controlUi.allowedOrigins '[]'
+services:
+  config:
+    cap_drop:
+      - ALL
+    configs:
+      - mode: 493
+        source: entrypoint
+        target: /entrypoint.sh
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    entrypoint:
+      - /entrypoint.sh
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      HOME: /home/node
+      NODE_ENV: production
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Etc/UTC
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      disable: True
+    image: alpine/openclaw:2026.5.22
+    init: True
+    platform: linux/amd64
+    privileged: False
+    restart: on-failure:1
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: True
+    user: '568:568'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/AI/openclaw
+        target: /home/node
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/AI/shared
+        target: /mnt/AI_shared
+        type: bind
+  openclaw:
+    cap_drop:
+      - ALL
+    command:
+      - node
+      - openclaw.mjs
+      - gateway
+      - '--allow-unconfigured'
+      - '--bind'
+      - lan
+      - '--port'
+      - '30262'
+    depends_on:
+      config:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '6'
+          memory: 8192M
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      HOME: /home/node
+      NODE_ENV: production
+      NVIDIA_VISIBLE_DEVICES: void
+      OPENCLAW_GATEWAY_PASSWORD: "op://Private/OpenClaw Dakara/password"
+      PGID: '568'
+      PUID: '568'
+      TZ: Etc/UTC
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - curl
+        - '--request'
+        - GET
+        - '--silent'
+        - '--output'
+        - /dev/null
+        - '--show-error'
+        - '--fail'
+        - http://127.0.0.1:30262/healthz
+      timeout: 5s
+    image: alpine/openclaw:2026.5.22
+    init: True
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.openclaw.rule: Host(`openclaw.dakara.stream`)
+      traefik.http.services.openclaw.loadbalancer.server.port: '30262'
+    networks:
+      default: {}
+      proxy: {}
+      macvlan_net:
+        ipv4_address: 192.168.0.250
+        gw_priority: 10
+    platform: linux/amd64
+    ports: []
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '568:568'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/AI/openclaw
+        target: /home/node
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/AI/shared
+        target: /mnt/AI_shared
+        type: bind
+networks:
+  macvlan_net:
+    driver: macvlan
+    driver_opts:
+      parent: bond0
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.1
+          ip_range: 192.168.0.240/28
+  proxy:
+    external: True
+volumes: {}
+x-action-required: True
+x-notes: >
+  # OpenClaw ⚠️
+
+
+  ## Warnings ⚠️
+
+
+  - Container [config] is running with a TTY, Logs do not appear correctly in
+  the UI due to an [upstream
+  bug](https://github.com/docker/docker-py/issues/1394)
+
+  - No allowed origins specified. Falling back to
+  dangerouslyAllowHostHeaderOriginFallback=true.
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [openclaw]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [config]
+
+
+  **This container is short-lived.**
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals:
+  - host: openclaw.dakara.stream
+    name: Web UI
+    path: /
+    port: 443
+    scheme: https
+  - host: 192.168.0.250
+    name: Local UI (Macvlan)
+    path: /
+    port: 30262
+    scheme: http
