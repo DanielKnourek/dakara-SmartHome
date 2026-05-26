@@ -100,12 +100,39 @@ if [[ -n "$ICON_URL" ]]; then
     echo "   File: $META_FILE"
 
     echo "🔄 Triggering App Update to refresh Dashboard cache..."
-    # Fetch current config to re-submit it (dummy update)
-    # This forces TrueNAS to re-read the metadata file we just hacked.
-    CURRENT_JSON=$(midclt call app.config "$APP_NAME")
     
-    midclt call app.update $APP_NAME "$CURRENT_JSON" > /dev/null
-    echo "✅ Cache refreshed. Icon should appear immediately."
+    TRIGGER_NAME="ix-icon-cache-trigger"
+    # Minimal Alpine container that sleeps for 60s (so it stays 'running' long enough to exist)
+    TRIGGER_YAML="services:\n  trigger:\n    image: alpine:latest\n    command: ['sleep', '60']"
+    
+    TRIGGER_YAML=$(cat "/home/truenas_admin/deployment_test.yaml")
+    echo "Deploying dummy app to trigger cache refresh..."
+    TRIGGER_PAYLOAD=$(jq -n \
+      --arg name "$TRIGGER_NAME" \
+      --arg yaml "$TRIGGER_YAML" \
+      '[{
+        custom_app: true,
+        app_name: $name,
+        custom_compose_config_string: $yaml
+      }]')
+    
+    OUTPUT=$(midclt call app.create "$TRIGGER_PAYLOAD" 2>&1)
+    echo "$OUTPUT"
+    
+    # Wait loop
+    if [[ -n "$COMPOSE_FILE" ]]; then
+        echo "   Waiting for metadata file generation..."
+        for i in {1..10}; do
+          if [ -f "$META_FILE" ]; then break; fi
+          sleep 1
+        done
+    fi
+
+    echo "Deleting dummy app..."
+    OUTPUT=$(midclt call app.delete "$TRIGGER_NAME" 2>&1)
+    echo "$OUTPUT"
+    
+    echo "✅ Cache refreshed. The icon should appear in the Dashboard now."
   else
     echo "⚠️  Metadata file not found."
   fi
