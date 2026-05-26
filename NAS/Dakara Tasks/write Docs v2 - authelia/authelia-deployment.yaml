@@ -1,0 +1,41 @@
+services:
+  authelia:
+    container_name: authelia
+    image: authelia/authelia:latest
+    restart: unless-stopped
+    user: "568:568"
+    privileged: false
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges=true
+    networks:
+      - proxy
+    volumes:
+      - /mnt/ssd-data0/app-data/authelia:/config
+    environment:
+      - TZ=Europe/Prague
+      - UID=568
+      - GID=568
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "proxy"
+      traefik.http.routers.authelia.rule: "Host(`auth.dakara.stream`)"
+      traefik.http.services.authelia.loadbalancer.server.port: "9091"
+      # Global forwardAuth middleware registered in Traefik docker provider
+      traefik.http.middlewares.authelia.forwardauth.address: "http://authelia:9091/api/verify?rd=https://auth.dakara.stream/"
+      traefik.http.middlewares.authelia.forwardauth.trustForwardHeader: "true"
+      traefik.http.middlewares.authelia.forwardauth.authResponseHeaders: "Remote-User,Remote-Groups,Remote-Email,Remote-Name"
+networks:
+  proxy:
+    external: true
+x-notes: |-
+  **Authelia SSO Portal**
+  * URL: https://auth.dakara.stream
+  * Integrated with LLDAP for central user login
+x-portals:
+  - host: auth.dakara.stream
+    name: Open Dashboard
+    path: /
+    port: 443
+    scheme: https

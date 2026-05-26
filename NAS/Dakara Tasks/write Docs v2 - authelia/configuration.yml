@@ -1,0 +1,58 @@
+###############################################################
+# Authelia Configuration File
+# LLDAP SSO & Session settings for *.dakara.stream
+###############################################################
+
+theme: dark
+
+server:
+  address: 'tcp://0.0.0.0:9091'
+
+log:
+  level: info
+
+# JWT secret key for signature (generate 64-char key)
+identity_validation:
+  reset_password:
+    jwt_secret: "{{ op://Private/lldap_authelia_helper/JWT_SECRET }}"
+
+authentication_backend:
+  ldap:
+    implementation: lldap
+    address: 'ldap://192.168.0.21:3890'
+    base_dn: DC=knourek,DC=com
+    user: 'uid=authelia_helper,OU=people,DC=knourek,DC=com'
+    password: "{{ op://Private/lldap_authelia_helper/password }}"
+
+session:
+  name: authelia_session
+  # Session secret key (generate 64-char key)
+  secret: "{{ op://Private/lldap_authelia_helper/SESSION_SECRET }}"
+  same_site: lax
+  expiration: 12h
+  inactivity: 2h
+  cookies:
+    - domain: dakara.stream
+      authelia_url: https://auth.dakara.stream
+      default_redirection_url: https://home.dakara.stream
+
+storage:
+  # Encryption key for DB secrets (generate 64-char key)
+  encryption_key: "{{ op://Private/lldap_authelia_helper/STORAGE_KEY }}"
+  local:
+    path: /config/db.sqlite3
+
+access_control:
+  default_policy: deny
+  rules:
+    # Login page bypass
+    - domain: auth.dakara.stream
+      policy: bypass
+    
+    # OpenClaw Sandbox Authentication Rule
+    - domain: openclaw.dakara.stream
+      policy: one_factor
+
+notifier:
+  filesystem:
+    filename: /config/notification.txt
