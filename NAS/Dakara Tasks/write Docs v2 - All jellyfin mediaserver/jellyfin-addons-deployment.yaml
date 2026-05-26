@@ -1,0 +1,272 @@
+---
+networks:
+  proxy:
+    external: True
+  jellyfin-addons:
+    external: True
+services:
+  gluetun:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.qbittorrent.rule: "Host(`torrent.dakara.stream`)"
+      traefik.http.services.qbittorrent.loadbalancer.server.port: 8088
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    container_name: GlueTun-VPN
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8088:8088
+      - 51820:51820
+      - 51820:51820/udp
+      - 46931:46931
+      - 46931:46931/udp
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY="op://Private/5jdug5dtjs63g2oe7vlbcyv5ey/Mulvad key/WIREGUARD PRIVATE KEY"
+      - WIREGUARD_ADDRESSES=10.68.216.136/32
+      - WIREGUARD_MTU=1280
+      - SERVER_CITIES=Amsterdam
+      - VPN_PORT_FORWARDING=off 
+      - TZ=Europe/Prague
+      - UPDATER_PERIOD=24h
+    restart: always
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/gluetun:/tmp/gluetun
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    network_mode: service:gluetun
+    container_name: qbittorrent
+    depends_on:
+      - gluetun
+    environment:
+      - WEBUI_PORT=8088
+      - PUID=0
+      - PGID=0
+      - TZ=Europe/Prague
+      #- DOCKER_MODS=ghcr.io/gabe565/linuxserver-mod-vuetorrent
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/qbittorrent:/config
+      - /mnt/HomeArchive/HomeArchiveData/Downloads:/downloads
+    restart: unless-stopped
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=Europe/Prague
+      #- LANG=fr_FR
+      #- LANG=en_US
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+  prowlarr:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.prowlarr.rule: "Host(`prowlarr.dakara.stream`)"
+      traefik.http.services.prowlarr.loadbalancer.server.port: 9696
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Europe/Prague
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+  jackett:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.jackett.rule: "Host(`jackett.dakara.stream`)"
+      traefik.http.services.jackett.loadbalancer.server.port: 9117
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Europe/Prague
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/jackett:/config
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+  sonarr:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.sonarr.rule: "Host(`sonarr.dakara.stream`)"
+      traefik.http.services.sonarr.loadbalancer.server.port: 8989
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Europe/Prague
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/sonarr:/config
+      - /mnt/HomeArchive/HomeArchiveData/Downloads:/downloads
+      - /mnt/HomeArchive/HomeArchiveData/Media:/media
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+  radarr:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.radarr.rule: "Host(`radarr.dakara.stream`)"
+      traefik.http.services.radarr.loadbalancer.server.port: 7878
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Europe/Prague
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/radarr:/config
+      - /mnt/HomeArchive/HomeArchiveData/Downloads:/downloads
+      - /mnt/HomeArchive/HomeArchiveData/Media:/media
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+  jellyseerr:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.jellyseerr.rule: "Host(`program.dakara.stream`) || Host(`jellyseerr.dakara.stream`)"
+      traefik.http.services.jellyseerr.loadbalancer.server.port: 5055
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Prague
+    ports:
+      - 5055:5055
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/jellyseerr:/app/config
+    restart: unless-stopped
+
+x-notes: >
+  # Jellyfin Addons Stack
+  
+  ## Volumes
+  
+  ### VPN & Downloaders
+     - `/mnt/ssd-data0/app-data/jellyfin-addons/gluetun --> /tmp/gluetun` (Gluetun)
+     - `/mnt/ssd-data0/app-data/jellyfin-addons/configs/qbittorrent --> /config` (qBittorrent)
+     - `/mnt/HomeArchive/HomeArchiveData/Downloads --> /downloads` (Shared Downloads)
+  
+  ### Managers & Indexers
+     - `/mnt/ssd-data0/app-data/jellyfin-addons/configs/prowlarr --> /config` (Prowlarr)
+     - `/mnt/ssd-data0/app-data/jellyfin-addons/configs/jackett --> /config` (Jackett)
+     - `/mnt/ssd-data0/app-data/jellyfin-addons/configs/jellyseerr --> /app/config` (Jellyseerr)
+  
+  ### Media Automation (Sonarr/Radarr)
+     - `/mnt/ssd-data0/app-data/jellyfin-addons/configs/sonarr --> /config`
+     - `/mnt/ssd-data0/app-data/jellyfin-addons/configs/radarr --> /config`
+     - `/mnt/HomeArchive/HomeArchiveData/Media --> /media` (Library Access)
+
+  ## Security & Networking
+
+  **This stack connects multiple services to the `proxy` network for Traefik access.**
+  
+  - **qBittorrent** is routed through **Gluetun (VPN)**.
+  - **Prowlarr/Sonarr/Radarr/Jellyseerr** are exposed directly via Traefik.
+
+  ---
+
+  ### Container: [gluetun] (VPN Provider)
+  - **Privileged:** Yes (NET_ADMIN)
+  - **Provider:** Mullvad
+  - **Note:** Controls network traffic for qBittorrent.
+
+  ### Containers: [sonarr, radarr, prowlarr, qbittorrent]
+  #### Running user/group(s)
+  - User: 0 (root) - *As configured by PUID/PGID=0*
+  - Group: 0 (root)
+
+
+x-portals:
+  # --- Public HTTPS Access (Traefik) ---
+  - host: program.dakara.stream
+    name: 01. Jellyseerr (Requests)
+    path: /
+    port: 443
+    scheme: https
+  - host: torrent.dakara.stream
+    name: 02. qBittorrent
+    path: /
+    port: 443
+    scheme: https
+  - host: sonarr.dakara.stream
+    name: 03. Sonarr (TV)
+    path: /
+    port: 443
+    scheme: https
+  - host: radarr.dakara.stream
+    name: 04. Radarr (Movies)
+    path: /
+    port: 443
+    scheme: https
+  - host: prowlarr.dakara.stream
+    name: 05. Prowlarr (Indexers)
+    path: /
+    port: 443
+    scheme: https
+  - host: jackett.dakara.stream
+    name: 06. Jackett
+    path: /
+    port: 443
+    scheme: https
+
+  # --- Local Network Access (Fallback) ---
+  - host: 0.0.0.0
+    name: X1. Local Jellyseerr
+    path: /
+    port: 5055
+    scheme: http
+  - host: 0.0.0.0
+    name: X2. Local qBittorrent
+    path: /
+    port: 8088
+    scheme: http
+  - host: 0.0.0.0
+    name: X3. Local Sonarr
+    path: /
+    port: 8989
+    scheme: http
+  - host: 0.0.0.0
+    name: X4. Local Radarr
+    path: /
+    port: 7878
+    scheme: http

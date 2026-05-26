@@ -5,11 +5,10 @@ tags:
   - task
 status: Done
 depends_on:
-  - "[[Dakara Tasks/Have Power and internet.md|Have Power and internet]]"
-  - "[[Dakara Tasks/HOME ASSISTANT fix.md|HOME ASSISTANT fix]]"
-  - "[[Dakara Tasks/Jellyfin library structure.md|Jellyfin library structure]]"
+  - "[[Have Power and internet|Have Power and internet]]"
+  - "[[HOME ASSISTANT fix|HOME ASSISTANT fix]]"
+  - "[[Jellyfin library structure|Jellyfin library structure]]"
 dependency_completion: 33.3%
-
 ---
 ```meta-bind
 INPUT[listSuggester(

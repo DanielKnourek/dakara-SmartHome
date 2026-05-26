@@ -1,0 +1,52 @@
+services:
+  lldap:
+    container_name: lldap
+    image: lldap/lldap:stable
+    restart: unless-stopped
+    networks:
+      - proxy
+    
+    # 1. Storage
+    volumes:
+      - /mnt/ssd-data0/app-data/lldap/data:/data
+      - /mnt/ssd-data0/app-data/lldap/secrets:/secrets
+      
+    ports:
+      - "3890:3890"
+    # 2. Configuration
+    environment:
+      - UID=568
+      - GID=568
+      - TZ=Europe/Prague
+      # The domain you want your LDAP to serve
+      - LLDAP_LDAP_BASE_DN=dc=knourek,dc=com
+      # Port for the web interface
+      - LLDAP_HTTP_PORT=17170
+      # Port for the LDAP server
+      - LLDAP_LDAP_PORT=3890
+      - LLDAP_DATABASE_URL=sqlite:///data/users.db?mode=rwc
+      # secerts store
+      - LLDAP_JWT_SECRET_FILE=/secrets/JWT_SECRET
+      - LLDAP_LDAP_USER_PASS_FILE=/secrets/LDAP_USER_PASS
+      - LLDAP_SMTP_OPTIONS__ENABLE_PASSWORD_RESET=false
+    
+    # 3. Traefik Labels (Web UI Only)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lldap.rule=Host(`lldap.dakara.stream`)"
+      - "traefik.http.services.lldap.loadbalancer.server.port=17170"
+
+networks:
+  proxy:
+    external: true
+x-notes: |-
+  **LLDAP** - Lightweight LDAP Server
+  * **Base DN:** dc=knourek,dc=com
+  * **LDAP Port:** 3890 (Exposed)
+  * **Web UI:** Managed via Traefik
+x-portals:
+  - host: lldap.dakara.stream
+    name: Open Dashboard
+    path: /
+    port: 443
+    scheme: https

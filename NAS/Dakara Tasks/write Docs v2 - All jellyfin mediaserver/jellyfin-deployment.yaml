@@ -1,0 +1,98 @@
+---
+networks:
+  proxy:
+    external: True
+  jellyfin-addons:
+    external: True
+services:
+  jellyfin:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.jellyfin.rule: "Host(`kino.dakara.stream`)"
+      traefik.http.services.jellyfin.loadbalancer.server.port: 8096
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      PUID: 0
+      PGID: 0
+      TZ: Europe/Prague
+      NVIDIA_VISIBLE_DEVICES: all
+      JELLYFIN_CACHE_DIR: "/cache"
+      JELLYFIN_PublishedServerUrl: "https://kino.dakara.stream"
+    ports:
+      - 8096:8096
+      - 8920:8920
+      - 7359:7359/udp
+      - 1900:1900/udp
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin/config:/config
+      - /mnt/ssd-data0/app-data/jellyfin/cache:/cache
+      - /mnt/HomeArchive/HomeArchiveData/Media:/data/media
+      - /mnt/HomeArchive/HomeArchiveData/Downloads:/data/media_downloads
+    restart: unless-stopped
+x-notes: >
+  # Jellyfin
+
+  ## Volumes
+     - `/mnt/ssd-data0/app-data/jellyfin/config --> /config`
+     - `/mnt/ssd-data0/app-data/jellyfin/cache --> /cache`
+     - `/mnt/HomeArchive/HomeArchiveData/Media --> /data/media`
+     - `/mnt/HomeArchive/HomeArchiveData/Downloads --> /data/media_downloads`
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [jellyfin]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [permissions]
+
+
+  **This container is short-lived.**
+
+
+  #### Running user/group(s)
+
+
+  - User: root
+
+  - Group: root
+
+  - Supplementary Groups: apps
+
+x-portals:
+  - host: kino.dakara.stream
+    name: Open Jellyfin
+    path: /
+    port: 443
+    scheme: https
+  - host: 0.0.0.0
+    name: X-local
+    path: /
+    port: 8096
+    scheme: http

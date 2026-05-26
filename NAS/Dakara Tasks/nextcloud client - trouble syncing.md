@@ -3,10 +3,9 @@ created: 2024-01-17T18:21
 updated: 2024-01-17T18:42
 tags:
   - task
-status: Proposal
+status: Done
 depends_on: []
 dependency_completion: 100%
-
 ---
 ```meta-bind
 INPUT[listSuggester(
@@ -35,3 +34,13 @@ if (tasks.length > 0) {
 ```
 ---
 
+- I cannot sync my folder with local nextcloud. 
+- account `vaclav` is OK
+
+- vscode regex to hilight all non-ino rows
+```regex
+^[\d\-:]{10} [\d\-:]{12} \[ (?!info)
+
+# simplified
+\[ (?!info)
+```

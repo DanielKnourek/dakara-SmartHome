@@ -1,13 +1,11 @@
 ---
-created: 2024-04-16T13:11
-updated: 2024-04-16T13:13:00
+created: 2024-01-17T18:21
+updated: 2024-01-17T18:42
 tags:
   - task
 status: Done
-depends_on:
-  - "[[write Docs - Truecharts setup|write Docs - Truecharts setup]]"
-  - "[[write Docs - lldap|write Docs - lldap]]"
-dependency_completion: 50%
+depends_on: []
+dependency_completion: 100%
 ---
 ```meta-bind
 INPUT[listSuggester(
@@ -21,6 +19,8 @@ const result = {result: {}};
 await dv.view('_Assets/Scripts/dv-StatusCategoryUtils', result);
 update('dependency_completion', `${result.result}%`, dv.current().file.path)
 ```
+---
+
 ## Requirements
 
 - [https://truecharts.org/manual/SCALE/guides/getting-started](https://truecharts.org/manual/SCALE/guides/getting-started)
@@ -40,7 +40,7 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
     - apps:apps 770
 - HomeArchive/HomeArchiveData
     - apps:apps 770
-- HomeArchive/HomeArchiveData/Dowloads
+- HomeArchive/HomeArchiveData/Downloads
     - torrent and other dowload folder
     - apps:apps 770
 - HomeArchive/HomeArchiveData/Media
@@ -53,10 +53,47 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 	- skeleton (default) folder
 	- apps:apps 770
 
+```sh
+sudo zfs create \
+-o acltype=posixacl \
+-o xattr=sa \
+-o atime=off \
+-o compression=lz4 \
+"ssd-data0/app-data/nextcloud"
+
+sudo zfs create \
+-o acltype=posixacl \
+-o xattr=sa \
+-o atime=off \
+-o compression=lz4 \
+"ssd-data0/app-data/nextcloud/app-data"
+
+sudo zfs create \
+-o acltype=posixacl \
+-o xattr=sa \
+-o atime=off \
+-o compression=lz4 \
+"ssd-data0/app-data/nextcloud/postgres"
+
+sudo install -d -m 776 -o apps -g apps \
+  /mnt/ssd-data0/app-data/nextcloud
+  
+sudo install -d -m 777 -o 33 -g 33 \
+  /mnt/ssd-data0/app-data/nextcloud/app-data \
+  /mnt/HomeArchive/nextcloud
+
+# TODO: find out why cannot use apps
+sudo chown -R 33:33 /mnt/HomeArchive/nextcloud
+  
+sudo install -d -m 776 -o 999 -g 999 \
+  /mnt/ssd-data0/app-data/nextcloud/postgres
+```
+
 ## 2. nextcloud
 
 > [!tip]- Picture reference
-> ![[app-nextcloud-28.0.4_29.10.33.png]]
+> - [ ] Todo add image
+> ![[noimage.png]]
 
 > [!info]- Steps
 > - Apps → Discover Apps → Application Name (nextcloud) → Install
@@ -65,57 +102,82 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 > >
 | | |
 | ---- | ---- |
-| Application Name | name (default) |
-| Version                       | 29.10.36                                   |
+| Application Name | nextcloud (default) |
+| Version                       | 2.1.22                                  |
 | App Configuration →           |                                            |
 | Initial Admin User            | asuran                                     |
 | Initial Admin Password        | "op://Private/nextcloud admin/password"    |
-| Default Phone Region          | CZ                                         |
-| Access IP                     | 192.168.0.21                               |
-| Shared Folder Name            | Sdileno se mnou                            |
-| Collabora configuration →     |                                            |
-| Enable Collabora              | Yes                                        |
-| username                      | asuran                                     |
-| password                      | "op://Private/nextcloud admin/password"    |
-| dictionary                    | cs-CZ                                      |
-| PHP Configuration →           |                                            |
-| Memory Limit                  | 4G                                         |
-| Storage and Persistence →     |                                            |
-| - App HTML Storage →          |                                            |
-| Type of Storage               | PVC                                        |
-| - App Config Storage →        |                                            |
+| APT Packages          | `ffmpeg`                                         |
+| Tesseract Language Codes         | `ces`                                         |
+| Imaginary Enabled                  | YES          |
+| Host                  | `192.168.0.21 archive.dakara.stream`          |
+| Redis Password                  | "op://Private/nextcloud admin/db password"          |
+| Database Password                  | "op://Private/nextcloud admin/db password"          |
+| PHP Upload Limit (in GB)                  | `20`          |
+| Network Configuration →     |                                            |
+| Port Bind Mode                  | Publish port on the host for external access          |
+| Port Number                  | `30027`          |
+| Storage Configuration →     |                                            |
+| - Nextcloud AppData Storage →          |    (HTML, Custom Themes, Apps, etc.)          |
 | Type of Storage               | Host Path                                  |
-| Host Path                     | /mnt/ssd-data0/app-data/Nextcloud/config   |
-| - User Data Storage →         |                                            |
+| Host Path                     | /mnt/ssd-data0/app-data/nextcloud/app-data   |
+| - Nextcloud User Data Storage →        |                                            |
 | Type of Storage               | Host Path                                  |
-| Host Path                     | /mnt/HomeArchive/nextcloud                 |
+| Host Path                     | /mnt/HomeArchive/nextcloud   |
+| - Nextcloud Postgres Data Storage →        |                                            |
+| Type of Storage               | Host Path                                  |
+| Host Path                     | /mnt/ssd-data0/app-data/nextcloud/postgres   |
+| Automatic Permissions | YES |
 | - Additional App Storage →    |                                            |
 | 1. Type of Storage            | Host Path                                  |
-| 1. Host Path                  | /mnt/HomeArchive/HomeArchiveData/Media     |
 | 1. Mount Path                 | /mnt/HomeArchiveData/Media                 |
+| 1. Host Path                  | /mnt/HomeArchive/HomeArchiveData/Media     |
 | 2. Type of Storage            | Host Path                                  |
-| 2. Host Path                  | /mnt/HomeArchive/HomeArchiveData/Sdilene   |
 | 2. Mount Path                 | /mnt/HomeArchiveData/Sdilene               |
+| 2. Host Path                  | /mnt/HomeArchive/HomeArchiveData/Sdilene   |
 | 3. Type of Storage            | Host Path                                  |
-| 3. Host Path                  | /mnt/HomeArchive/HomeArchiveData/Downloads |
 | 3. Mount Path                 | /mnt/HomeArchiveData/Downloads             |
-| 4. Type of Storage            | Host Path                                  |
-| 4. Host Path                  | /mnt/ssd-data0/app-data/Nextcloud/skeleton |
-| 4. Mount Path                 | /mnt/skeleton             |
-| Ingress →                     |                                            |
-| Main Ingress → Enable Ingress | Yes                                        |
-| - Hosts →                     |                                            |
-| HostName                      | archive.dakara.stream                      |
-| Path                          | /                                          |
-| Path Type                     | Prefix                                     |
-| Cert-Manager enabled          | YES                                        |
-| Cert-Manager clusterIssuer    | dakara-stream-cloudflare                   |
-| Resources →                   |                                            |
-| CPU                           | 4000m                                      |
-| RAM                           | 8Gi                                        |
-| Postgresql →                  |                                            |
-| Postgres Version              | 16                                         |
-| Password                      | "op://Private/nextcloud admin/password"    |
+| 3. Host Path                  | /mnt/HomeArchive/HomeArchiveData/Downloads |
+```yaml
+# nextcloud labels
+# ...
+networks:
+  proxy:
+    external: True
+services:
+  nextcloud:
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.nextcloud.rule: Host(`archive.dakara.stream`)
+      traefik.http.services.nextcloud.loadbalancer.server.port: '80'
+# ...
+```
+
+**result compose file:**
+![[nextcloud-deployment.yaml]]
+
+- make sure that `nextcloud-deployment.yaml` file exists and has correct values
+```sh
+sudo touch /mnt/ssd-data0/app-data/nextcloud/deployment.yaml
+sudo chmod 660 /mnt/ssd-data0/app-data/nextcloud/deployment.yaml
+
+# lazy person snippet
+sudo vim /mnt/ssd-data0/app-data/nextcloud/deployment.yaml
+
+# and INSTALL
+sudo ~/deploy_app.py nextcloud --file /mnt/ssd-data0/app-data/nextcloud/deployment.yaml --icon https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nextcloud.png
+```
+
+
+
+
+> [!attention]
+> ended here, continue from here!
+
 
 ## 3. Nextcloud config
 
@@ -136,6 +198,9 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 | Memories | 7.2.0 | [settings/apps/multimedia/memories](https://archive.dakara.stream/settings/apps/multimedia/memories) |
 | Preview Generator | 5.5.0 | [settings/apps/multimedia/previewgenerator](https://archive.dakara.stream/settings/apps/multimedia/previewgenerator) |
 | Recognize  | 6.1.1 | [settings/apps/enabled/recognize](https://archive.dakara.stream/settings/apps/enabled/recognize) |
+| Whiteboard   | 1.5.2 | [settings/apps/featured/whiteboard](https://archive.dakara.stream/settings/apps/featured/whiteboard) |
+| Archive Manager    | 1.2.8 | [settings/apps/files/files_archive](https://archive.dakara.stream/settings/apps/files/files_archive) |
+| Zipper    | 2.2.0 | [settings/apps/files/files_zip](https://archive.dakara.stream/settings/apps/files/files_zip) |
 
 #### 3.2. App configuration - LDAP/AD integration
 - Menu → Administration settings → LDAP/AD integration
@@ -157,11 +222,11 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 > >
 | | |
 | --- | --- |
-| Host | ldap://lldap-ldap.ix-lldap.svc.cluster.local |
-| Port | 3890 |
-| User DN | uid=nextcloud_user,OU=people,DC=dakara,DC=stream |
-| Password | "op://Private/lldap nextcloud_user/password" |
-| Base DN | DC=dakara,DC=stream |
+| Host | `ldap://192.168.0.21` |
+| Port | `3890` |
+| User DN | `uid=nextcloud_helper,OU=people,DC=knourek,DC=com` |
+| Password | `"op://Private/lldap nextcloud_helper/password"` |
+| Base DN | `DC=knourek,DC=com` |
 
 ##### 3.2.2 LDAP/AD integration → Expert
 
@@ -189,7 +254,7 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 > > ```
 > > (
 > > &(objectclass=person)
-> > (memberOf=cn=nextcloud_users,ou=groups,DC=dakara,DC=stream)
+> > (memberOf=cn=nextcloud_users,ou=groups,DC=knourek,DC=com)
 > > )
 > > ```
 
@@ -215,7 +280,7 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 | LDAP/AD Email Address | Yes |
 > LDAP Filter 
 > > ```
-> > (&( &(objectclass=person) (memberOf=cn=nextcloud_users,ou=groups,DC=dakara,DC=stream) )(|(uid=%uid)(|(mailPrimaryAddress=%uid)(mail=%uid))))
+> > (&( &(objectclass=person) (memberOf=cn=nextcloud_users,ou=groups,DC=knourek,DC=com) )(|(uid=%uid)(|(mailPrimaryAddress=%uid)(mail=%uid))))
 > > ```
 
 ##### 3.2.5 LDAP/AD integration → Groups
@@ -284,33 +349,49 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 > - TrueNAS Scale → Apps → Installed Applications
 > - Nextcloud → Workloads → Shell
 >
-| | |
-| --- | --- |
-| Pods | nextcloud-{#ID#-#ID#} |
-| Containers | nextcloud |
-| Commands | /bin/sh |
 >
 > > [!note] Commands
 > >    ```shell
 > >    php occ memories:places-setup
 > >    # takes about ~2-4 mins
 > >    
-> >    php occ memories:index –folder=/mnt/HomeArchiveData/Media	
+> >    php occ memories:index --path "/Media"	
 > >    ```
 
 
 #### 3.5. General configuration - New user
+- add skeleton dataset
+```sh
+sudo zfs create \
+-o acltype=posixacl \
+-o xattr=sa \
+-o atime=off \
+-o compression=lz4 \
+"ssd-data0/app-data/nextcloud/skeleton"
+
+sudo install -d -m 776 -o apps -g apps \
+  /mnt/ssd-data0/app-data/nextcloud/skeleton
+```
+- add mount to the container
+```yaml
+# ...
+services:
+  nextcloud:
+# ...
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/nextcloud/skeleton
+        target: /mnt/skeleton
+        type: bind
+# ...
+```
 - Open nextcloud cli
 
 > [!info]- Steps
 > - TrueNAS Scale → Apps → Installed Applications
 > - Nextcloud → Workloads → Shell
->
-| | |
-| --- | --- |
-| Pods | nextcloud-{#ID#-#ID#} |
-| Containers | nextcloud |
-| Commands | /bin/sh |
 >
 > > [!note] Commands
 > >    ```shell
@@ -323,3 +404,92 @@ update('dependency_completion', `${result.result}%`, dv.current().file.path)
 > >    php occ config:system:set skeletondirectory --value="/mnt/skeleton"
 > >    ```
 
+```sh
+# in a nextcloud container
+
+# fix reverse proxy to correct protocol
+php occ config:system:set overwriteprotocol --value=https
+php occ config:system:set overwrite.cli.url --value="https://archive.dakara.stream"
+
+php occ config:system:set maintenance_window_start --value="4" --type=integer
+```
+
+#### 3.6. App configuration - Whiteboard
+- https://archive.dakara.stream/settings/admin/whiteboard
+- https://github.com/nextcloud/whiteboard?tab=readme-ov-file#websocket-server-for-real-time-collaboration
+```sh
+# in a nextcloud container
+
+# set values
+php occ config:app:set whiteboard collabBackendUrl --value="https://whiteboard.dakara.stream"
+php occ config:app:set whiteboard jwt_secret_key --value="op://Private/nextcloud admin/Whiteboard JWT"
+```
+
+- add this service to deployment.yaml
+```yaml
+nextcloud-whiteboard-server:
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.nextcloud-whiteboard.rule: Host(`whiteboard.dakara.stream`)
+      traefik.http.services.nextcloud-whiteboard.loadbalancer.server.port: '3002'
+    image: ghcr.io/nextcloud-releases/whiteboard:stable
+    environment:
+      NEXTCLOUD_URL: https://archive.dakara.stream
+      JWT_SECRET_KEY: "op://Private/nextcloud admin/Whiteboard JWT"
+```
+
+#### 3.6. App configuration - Archive manager
+- https://archive.dakara.stream/settings/apps/files/files_archive
+```sh
+# in a nextcloud container
+
+# install RAR support
+pecl install rar
+```
+
+---
+---
+## used commands
+```sh
+# nuke unvatned files
+sudo rm -fr /mnt/HomeArchive/nextcloud/.htaccess
+sudo rm -fr /mnt/HomeArchive/nextcloud/asuran
+sudo rm -fr /mnt/HomeArchive/nextcloud/index.html
+sudo rm -fr /mnt/HomeArchive/nextcloud/nextcloud.log
+
+# reset content again
+sudo rm -fr /mnt/ssd-data0/app-data/nextcloud/app-data/*
+sudo rm -fr /mnt/ssd-data0/app-data/nextcloud/app-data/.*
+
+sudo rm -fr /mnt/ssd-data0/app-data/nextcloud/postgres/*
+sudo rm -fr /mnt/ssd-data0/app-data/nextcloud/app-postgres/.*
+```
+
+```sh
+# scanning all files again
+
+# my exec into contianer script
+ls ~/exec-into-container.sh || wget -qO ~/exec-into-container.sh https://raw.githubusercontent.com/DanielKnourek/IT-support/main/Tools/dockerSelectContainer/exec-into-container.sh && sudo bash ~/exec-into-container.sh
+
+# > ix-nextcloud-nextcloud-1
+
+php occ files:scan --all
+```
+- clearing some warning
+```sh
+# inside nextcloud container
+
+# Database missing indices 
+php occ db:add-missing-indices
+
+# Mimetype migrations available
+php occ maintenance:repair --include-expensive
+
+php occ config:system:set maintenance_window_start --value="4" --type=integer
+
+php occ config:system:set default_phone_region --value="CZ"
+```

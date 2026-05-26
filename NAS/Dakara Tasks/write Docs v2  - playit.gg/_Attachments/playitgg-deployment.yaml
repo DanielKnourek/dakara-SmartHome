@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  playit:
+    container_name: playit
+    image: ghcr.io/mafen/playit-docker:latest
+    restart: unless-stopped
+    user: "root"
+    network_mode: host
+    entrypoint: ["/bin/bash", "setup.sh"]
+    volumes:
+      - /mnt/ssd-data0/app-data/playitgg/config:/etc/playit

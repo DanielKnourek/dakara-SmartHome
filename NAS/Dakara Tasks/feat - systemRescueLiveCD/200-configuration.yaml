@@ -1,0 +1,28 @@
+---
+sysconfig:
+    timezone: "Europe/Prague"
+    # Your SSH Public Keys
+    authorized_keys:
+        "daniel@1password.com": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM9T6Ij4ICXvdNDZ9mnKRuidlIDismeN/Om9+3MqyObR"
+
+services:
+    # Enable SSH immediately
+    - name: sshd
+      enabled: true
+      running: true
+
+autorun:
+    exec:
+        300:
+            path: "iptables"
+            parameters: 
+                - "-I"
+                - "INPUT"
+                - "-p"
+                - "tcp"
+                - "--dport"
+                - "22"
+                - "-j"
+                - "ACCEPT"
+            wait: on_error
+            on_error: break

@@ -3,10 +3,9 @@ created: 2024-01-17T18:21
 updated: 2024-01-17T18:42
 tags:
   - task
-status: Proposal
+status: Done
 depends_on: []
 dependency_completion: 100%
-
 ---
 ```meta-bind
 INPUT[listSuggester(
@@ -35,3 +34,5 @@ if (tasks.length > 0) {
 ```
 ---
 
+- https://www.reddit.com/r/admincraft/comments/xcs1tk/guide_domain_names_and_minecraft_a_somewhat/
+- https://desec.io/

@@ -3,10 +3,9 @@ created: 2024-01-17T18:21
 updated: 2024-01-17T18:42
 tags:
   - task
-status: Proposal
+status: Not started
 depends_on: []
 dependency_completion: 100%
-
 ---
 ```meta-bind
 INPUT[listSuggester(
@@ -20,18 +19,12 @@ const result = {result: {}};
 await dv.view('_Assets/Scripts/dv-StatusCategoryUtils', result);
 update('dependency_completion', `${result.result}%`, dv.current().file.path)
 ```
-```dataviewjs
-// 1. Get all tasks from the current page that are NOT completed
-let tasks = dv.current().file.tasks.where(t => !t.completed);
 
-// 2. Check if there are any tasks found
-if (tasks.length > 0) {
-    // Optional: Add a header so you know what this list is
-    dv.header(3, "To Do");
-    
-    // 3. Render the list
-    dv.taskList(tasks);
-}
+
+```bash
+sudo k3s kubectl create serviceaccount lantean -n kube-system
+
+sudo k3s kubectl create clusterrolebinding lantean-binder --clusterrole=cluster-admin --serviceaccount=kube-system:lantean
+
+sudo k3s kubectl create token lantean -n kube-system --duration=8760h
 ```
----
-

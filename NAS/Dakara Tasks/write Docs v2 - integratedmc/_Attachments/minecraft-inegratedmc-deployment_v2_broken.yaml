@@ -1,0 +1,137 @@
+services:
+  minecraft:
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - NET_RAW
+      - SETGID
+      - SETUID
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8192M
+    environment:
+      ALLOW_FLIGHT: 'TRUE'
+      ALLOW_NETHER: 'TRUE'
+      ANNOUNCE_PLAYER_ACHIEVEMENTS: 'TRUE'
+      GENERIC_PACK: /modpack.zip
+      MEMORY: 4G
+      FORGE_VERSION: 47.4.0
+      DIFFICULTY: hard
+      ENABLE_AUTOPAUSE: 'TRUE'
+      ENABLE_COMMAND_BLOCK: 'TRUE'
+      ENABLE_RCON: 'TRUE'
+      EULA: 'TRUE'
+      FORCE_GAMEMODE: 'FALSE'
+      GENERATE_STRUCTURES: 'TRUE'
+      GID: '568'
+      GROUP_ID: '568'
+      GUI: 'FALSE'
+      HARDCORE: 'FALSE'
+      LEVEL_TYPE: minecraft:default
+      MAX_BUILD_HEIGHT: '256'
+      MAX_PLAYERS: '13'
+      MAX_TICK_TIME: '-1'
+      MAX_WORLD_SIZE: '10000'
+      MODE: survival
+      MOTD: >-
+        \u00A74Another \u00A71First
+        \u00A74Adventure\u00A7r\n\u00A70[\u00A74A\u00A71V\u00A74A\u00A70] with
+        friends
+      NVIDIA_VISIBLE_DEVICES: void
+      ONLINE_MODE: 'FALSE'
+      OPS: kdandikk
+      PGID: '568'
+      PUID: '568'
+      PVP: 'TRUE'
+      RCON_PASSWORD: op://Private/minecraft-IntegratedMC/password
+      RCON_PORT: '25575'
+      SERVER_NAME: Another First Adventure
+      SERVER_PORT: '25535'
+      SKIP_SUDO: 'FALSE'
+      SPAWN_ANIMALS: 'TRUE'
+      SPAWN_MONSTERS: 'TRUE'
+      SPAWN_NPCS: 'TRUE'
+      SPAWN_PROTECTION: '0'
+      TYPE: FORGE
+      TZ: Europe/Prague
+      UID: '568'
+      USER_ID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      VERSION: 1.20.1
+      VIEW_DISTANCE: '10'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 120s
+      test:
+        - CMD
+        - mc-health
+      timeout: 5s
+    image: ghcr.io/itzg/minecraft-server:java17
+    platform: linux/amd64
+    ports:
+      - "25535:25535"
+      - "25575:25575"
+    privileged: False
+    restart: unless-stopped
+    stdin_open: False
+    tty: False
+    volumes:
+      - /mnt/ssd-data1/minecraft-integratemc/FeedTheBeast:/data
+      - /mnt/ssd-data1/minecraft-integratemc/Integrated_Minecraft-1.6.8_server_pack.zip:/modpack.zip:ro
+volumes: {}
+x-action-required: False
+x-notes: >
+  # Minecraft Server (Java)
+
+
+  ## Info
+
+
+  - With auto-pause enabled, User/Group configuration is ignored. Files will be
+  owned by the root user.
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [minecraft]
+
+
+  #### Running user/group(s)
+
+
+  - User: unknown
+
+  - Group: unknown
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals: []

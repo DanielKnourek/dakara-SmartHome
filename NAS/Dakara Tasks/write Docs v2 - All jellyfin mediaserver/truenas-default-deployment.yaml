@@ -1,0 +1,230 @@
+configs:
+  permissions_actions_data:
+    content: >-
+      [{"read_only": false, "mount_path": "/mnt/permission/config",
+      "is_temporary": false, "identifier": "config", "recursive": false, "mode":
+      "check", "uid": 568, "gid": 568, "chmod": null}, {"read_only": false,
+      "mount_path": "/mnt/permission/cache", "is_temporary": false,
+      "identifier": "cache", "recursive": false, "mode": "check", "uid": 568,
+      "gid": 568, "chmod": null}, {"read_only": false, "mount_path":
+      "/mnt/permission/transcodes", "is_temporary": true, "identifier":
+      "transcodes", "recursive": true, "mode": "check", "uid": 568, "gid": 568,
+      "chmod": null}]
+services:
+  jellyfin:
+    cap_drop:
+      - ALL
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      JELLYFIN_CACHE_DIR: /cache
+      JELLYFIN_PublishedServerUrl: https://watch.dakara.stream
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - curl
+        - '--request'
+        - GET
+        - '--silent'
+        - '--output'
+        - /dev/null
+        - '--show-error'
+        - '--fail'
+        - http://127.0.0.1:8096/health
+      timeout: 5s
+    image: jellyfin/jellyfin:10.11.5
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: 30013
+        target: 8096
+      - mode: ingress
+        protocol: tcp
+        published: 30014
+        target: 8920
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '568:568'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/.ix-apps/app_mounts/jellyfin/cache
+        target: /cache
+        type: bind
+      - read_only: False
+        source: jellyfin-transcodes
+        target: /cache/transcodes
+        type: volume
+        volume:
+          nocopy: False
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/.ix-apps/app_mounts/jellyfin/config
+        target: /config
+        type: bind
+      - read_only: False
+        source: jellyfin-transcodes
+        target: /config/transcodes
+        type: volume
+        volume:
+          nocopy: False
+  permissions:
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+    cap_drop:
+      - ALL
+    configs:
+      - mode: 320
+        source: permissions_actions_data
+        target: /script/actions.json
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    entrypoint:
+      - python3
+      - /script/permissions.py
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      disable: True
+    image: ixsystems/container-utils:1.0.2
+    network_mode: none
+    platform: linux/amd64
+    privileged: False
+    restart: on-failure:1
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '0:0'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/.ix-apps/app_mounts/jellyfin/cache
+        target: /mnt/permission/cache
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/.ix-apps/app_mounts/jellyfin/config
+        target: /mnt/permission/config
+        type: bind
+      - read_only: False
+        source: jellyfin-transcodes
+        target: /mnt/permission/transcodes
+        type: volume
+        volume:
+          nocopy: False
+volumes:
+  jellyfin-transcodes: {}
+x-notes: >
+  # Jellyfin
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [jellyfin]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [permissions]
+
+
+  **This container is short-lived.**
+
+
+  #### Running user/group(s)
+
+
+  - User: root
+
+  - Group: root
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals:
+  - host: 0.0.0.0
+    name: Web UI
+    path: /
+    port: 30013
+    scheme: http

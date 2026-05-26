@@ -36,22 +36,22 @@
           "config": {
             "groupByField": "status",
             "columns": {
-              "No status": {
+              "Proposal": {
                 "weight": 0
               },
-              "Proposal": {
+              "Not started": {
                 "weight": 1
               },
               "In progress": {
                 "weight": 2
               },
-              "Not started": {
+              "Done": {
                 "weight": 3
               },
-              "Done": {
+              "Graveyard": {
                 "weight": 4
               },
-              "Graveyard": {
+              "No status": {
                 "weight": 5
               }
             },

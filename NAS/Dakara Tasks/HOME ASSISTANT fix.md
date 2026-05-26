@@ -11,3 +11,7 @@ Blocking status: 100
 Created time: October 10, 2023 4:27 PM
 Last edited time: October 10, 2023 6:28 PM
 Parent task: TrueNAS scale [[(TrueNAS scale]]
+
+
+- Local tuya old verison
+- ![[ha-localtuya 1.png]]
