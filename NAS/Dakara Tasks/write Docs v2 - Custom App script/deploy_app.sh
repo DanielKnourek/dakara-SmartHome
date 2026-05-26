@@ -101,20 +101,20 @@ if [[ -n "$ICON_URL" ]]; then
 
     echo "🔄 Triggering App Update to refresh Dashboard cache..."
     
-    TRIGGER_NAME="ix-icon-cache-trigger"
+    TRIGGER_NAME="metadata-refresh"
     # Minimal Alpine container that sleeps for 60s (so it stays 'running' long enough to exist)
-    TRIGGER_YAML="services:\n  trigger:\n    image: alpine:latest\n    command: ['sleep', '60']"
+    # TRIGGER_YAML="services:\n  trigger:\n    image: alpine:latest\n    command: ['sleep', '60']"
     
     TRIGGER_YAML=$(cat "/home/truenas_admin/deployment_test.yaml")
     echo "Deploying dummy app to trigger cache refresh..."
     TRIGGER_PAYLOAD=$(jq -n \
       --arg name "$TRIGGER_NAME" \
       --arg yaml "$TRIGGER_YAML" \
-      '[{
+      '{
         custom_app: true,
         app_name: $name,
         custom_compose_config_string: $yaml
-      }]')
+      }')
     
     OUTPUT=$(midclt call app.create "$TRIGGER_PAYLOAD" 2>&1)
     echo "$OUTPUT"
@@ -129,7 +129,7 @@ if [[ -n "$ICON_URL" ]]; then
     fi
 
     echo "Deleting dummy app..."
-    OUTPUT=$(midclt call app.delete "$TRIGGER_NAME" 2>&1)
+    OUTPUT=$(midclt call app.delete "$TRIGGER_NAME" "{\"remove_images\": false}" 2>&1)
     echo "$OUTPUT"
     
     echo "✅ Cache refreshed. The icon should appear in the Dashboard now."
