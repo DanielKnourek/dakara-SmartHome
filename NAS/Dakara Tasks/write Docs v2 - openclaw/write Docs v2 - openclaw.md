@@ -171,23 +171,78 @@ Because the gateway runs on a customized port (`30262`) rather than the default 
 
 ---
 
-## 4. Active Dual-Network Integration: Macvlan + Traefik Proxy
+## 4. Active Centralized Sandbox: Squid Proxy Firewall
 
 - **Status:** Fully Implemented (Active in `openclaw-deployment.yaml`).
-- **Details:** To achieve absolute network sandboxing while maintaining Traefik routing, the container is attached to **both** the physical LAN (via `macvlan_net`) and the Traefik proxy network (via `proxy`).
+- **Details:** To achieve absolute network sandboxing without configuring router rules or host firewalls on individual devices, the container uses a centralized **Squid Forward Proxy** container that acts as a local network firewall.
 
 ### 4.1 The Routing Architecture
-Since a container can only have a single default gateway, we must configure Docker to route all outbound WAN traffic via the physical LAN interface instead of the docker bridge interface. This is done in our active `openclaw-deployment.yaml` using:
+*   **No Direct Physical LAN & No Default Bridge:** The `openclaw` container is completely disconnected from `macvlan_net` and standard docker bridge networks. It is attached solely to a custom isolated `sandbox_net` (an `internal: true` private network) and the Traefik `proxy` network (for ingress `openclaw.dakara.stream` traffic).
+*   **The Squid Gateway:** A dedicated `squid` container runs in the same stack. It has access to the physical LAN via `macvlan_net` (holding IP `192.168.0.250` and the static MAC `fe:75:22:9b:89:fd`) and connects to `sandbox_net` to act as the sole outbound gateway.
+*   **Centralized Firewall Rules:** Squid uses a self-contained, zero-cache configuration (`squid_config` under docker `configs`) to filter all outbound requests:
+    *   **Block** any target matching local network IP ranges: `192.168.0.0/16`, `172.16.0.0/12`, `10.0.0.0/8`.
+    *   **Allow** all public internet outbound connections (e.g. Anthropic, OpenAI, etc.).
+*   **Integration:** Standard `HTTP_PROXY` and `HTTPS_PROXY` environment variables are injected into OpenClaw. OpenClaw automatically routes all API outbound requests through Squid, ensuring strict sandbox filtering at the proxy level.
 
-1. **`gw_priority: 10`:** Instructs Docker that the default route (gateway) for the container must be the `macvlan_net` gateway (`192.168.0.1`). All outbound API requests (e.g., Anthropic, OpenAI) will resolve and travel out of the `192.168.0.250` interface.
-2. **`ports: []`:** Port publishing is completely removed/disabled on the host (`192.168.0.21`) to prevent external NAT access from bypassing our security policies.
-3. **`proxy` network attachment:** Traefik resolves and routes ingress traffic (e.g. `openclaw.dakara.stream` requests) to OpenClaw internally via the docker bridge.
-
-### 4.2 Active Network Configurations
-Below is the network block currently implemented in our active `openclaw-deployment.yaml`:
+### 4.2 Active Network & Proxy Configurations
+Below is the configuration currently implemented in our active `openclaw-deployment.yaml`:
 
 ```yaml
+configs:
+  squid_config:
+    content: |
+      acl localnet dst 192.168.0.0/16
+      acl localnet dst 172.16.0.0/12
+      acl localnet dst 10.0.0.0/8
+      http_access deny localnet
+      http_access allow localhost
+      http_access allow all
+      http_port 3128
+      cache deny all
+      pid_filename none
+
+services:
+  squid:
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+    configs:
+      - mode: 292
+        source: squid_config
+        target: /etc/squid/squid.conf
+    image: ubuntu/squid:latest
+    init: True
+    platform: linux/amd64
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    networks:
+      sandbox_net: {}
+      macvlan_net:
+        ipv4_address: 192.168.0.250
+        mac_address: fe:75:22:9b:89:fd
+        gw_priority: 10
+
+  openclaw:
+    # ...
+    environment:
+      HTTP_PROXY: http://squid:3128
+      HTTPS_PROXY: http://squid:3128
+      NO_PROXY: localhost,127.0.0.1,config
+      http_proxy: http://squid:3128
+      https_proxy: http://squid:3128
+      no_proxy: localhost,127.0.0.1,config
+    networks:
+      sandbox_net: {}
+      proxy: {}
+    ports: []
+
 networks:
+  sandbox_net:
+    internal: true
   macvlan_net:
     driver: macvlan
     driver_opts:
@@ -199,16 +254,7 @@ networks:
           ip_range: 192.168.0.240/28
   proxy:
     external: True
-
-# Under services.openclaw:
-    networks:
-      default: {}
-      proxy: {}
-      macvlan_net:
-        ipv4_address: 192.168.0.250
-        gw_priority: 10
-    ports: []
 ```
 
 > [!important]
-> **Action Required:** For the "Padded Room" isolation to be complete, you must configure your physical gateway/router (e.g., pfSense, Unifi) to drop all packets from `192.168.0.250` targeting internal subnets (`192.168.0.0/24`), while allowing WAN outbound.
+> **Action Completed:** The sandbox is fully self-contained. No additional physical gateway firewall configurations or host-based firewall configurations are required to secure your other local devices (like printers, computers, and smart hubs). Outbound local traffic is permanently rejected at the proxy.

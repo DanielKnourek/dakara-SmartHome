@@ -11,7 +11,41 @@ configs:
       gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
 
       node dist/index.js config set gateway.controlUi.allowedOrigins '[]'
+  squid_config:
+    content: |
+      acl localnet dst 192.168.0.0/16
+      acl localnet dst 172.16.0.0/12
+      acl localnet dst 10.0.0.0/8
+      http_access deny localnet
+      http_access allow localhost
+      http_access allow all
+      http_port 3128
+      cache deny all
+      pid_filename none
 services:
+  squid:
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+    configs:
+      - mode: 292
+        source: squid_config
+        target: /etc/squid/squid.conf
+    image: ubuntu/squid:latest
+    init: True
+    platform: linux/amd64
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    networks:
+      sandbox_net: {}
+      macvlan_net:
+        ipv4_address: 192.168.0.250
+        mac_address: fe:75:22:9b:89:fd
+        gw_priority: 10
   config:
     cap_drop:
       - ALL
@@ -53,6 +87,8 @@ services:
     stdin_open: False
     tty: True
     user: '568:568'
+    networks:
+      sandbox_net: {}
     volumes:
       - bind:
           create_host_path: False
@@ -92,7 +128,13 @@ services:
       GID: '568'
       GROUP_ID: '568'
       HOME: /home/node
+      HTTP_PROXY: http://squid:3128
+      HTTPS_PROXY: http://squid:3128
       NODE_ENV: production
+      NO_PROXY: localhost,127.0.0.1,config
+      http_proxy: http://squid:3128
+      https_proxy: http://squid:3128
+      no_proxy: localhost,127.0.0.1,config
       NVIDIA_VISIBLE_DEVICES: void
       OPENCLAW_GATEWAY_PASSWORD: "op://Private/OpenClaw Dakara/password"
       PGID: '568'
@@ -129,11 +171,8 @@ services:
       traefik.http.routers.openclaw.rule: Host(`openclaw.dakara.stream`)
       traefik.http.services.openclaw.loadbalancer.server.port: '30262'
     networks:
-      default: {}
+      sandbox_net: {}
       proxy: {}
-      macvlan_net:
-        ipv4_address: 192.168.0.250
-        gw_priority: 10
     platform: linux/amd64
     ports: []
     privileged: False
@@ -159,6 +198,8 @@ services:
         target: /mnt/AI_shared
         type: bind
 networks:
+  sandbox_net:
+    internal: true
   macvlan_net:
     driver: macvlan
     driver_opts:
