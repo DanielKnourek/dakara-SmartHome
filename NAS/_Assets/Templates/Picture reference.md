@@ -1,0 +1,2 @@
+> [!tip]- Picture reference
+> ![[imagePath]]

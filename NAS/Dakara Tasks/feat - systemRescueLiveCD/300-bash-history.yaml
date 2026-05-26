@@ -1,0 +1,6 @@
+---
+sysconfig:
+    bash_history:
+        200: "systemctl status sshd"
+        201: "cat ~/.ssh/authorized_keys"
+        202: "xrandr -r 60"

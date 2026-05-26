@@ -1,0 +1,119 @@
+---
+networks:
+  proxy:
+    external: True
+services:
+  homepage:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.homepage.rule: Host(`home.dakara.stream`)
+      traefik.http.services.homepage.loadbalancer.server.port: '30054'
+    networks:
+      - default
+      - proxy
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: 'home.dakara.stream,192.168.0.21:30054'
+      NVIDIA_VISIBLE_DEVICES: void
+      PORT: '30054'
+      TZ: Etc/UTC
+      UMASK: '002'
+      UMASK_SET: '002'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '--spider'
+        - http://127.0.0.1:30054/api/healthcheck
+      timeout: 5s
+    image: ghcr.io/gethomepage/homepage:v1.8.0
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: 30054
+        target: 30054
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '1000:1000'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/homepage/config
+        target: /app/config
+        type: bind
+volumes: {}
+x-notes: >
+  # Homepage
+
+
+  ## Warnings
+
+
+  - Allowed Hosts set to `home.dakara.stream, 192.168.0.21:30054`.
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [homepage]
+
+
+  #### Running user/group(s)
+
+
+  - User: 1000
+
+  - Group: 1000
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals:
+  - host: home.dakara.stream
+    name: 1. Open Homepage
+    path: /
+    port: 443
+    scheme: https
+  - host: 0.0.0.0
+    name: X1 Local
+    path: /
+    port: 30054
+    scheme: http

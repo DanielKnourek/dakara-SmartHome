@@ -1,0 +1,44 @@
+{
+  "collapse-filter": false,
+  "search": "path:\"Dakara Tasks\"  ",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "tag:#task  ",
+      "color": {
+        "a": 1,
+        "rgb": 14069084
+      }
+    },
+    {
+      "query": "path:\"Dakara Tasks\"  ",
+      "color": {
+        "a": 1,
+        "rgb": 716825
+      }
+    },
+    {
+      "query": "[]",
+      "color": {
+        "a": 1,
+        "rgb": 16743048
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": true,
+  "textFadeMultiplier": -0.6,
+  "nodeSizeMultiplier": 1.00155925155925,
+  "lineSizeMultiplier": 3.07972972972973,
+  "collapse-forces": false,
+  "centerStrength": 0.466735966735967,
+  "repelStrength": 9.91683991683992,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.9681619554185547,
+  "close": false
+}

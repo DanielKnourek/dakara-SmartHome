@@ -1,0 +1,32 @@
+{
+  "dateFormat": "yyyy-MM-dd'T'HH:mm",
+  "enableCreateTime": true,
+  "headerUpdated": "updated",
+  "headerCreated": "created",
+  "minMinutesBetweenSaves": 10,
+  "ignoreGlobalFolder": [
+    "_Assets"
+  ],
+  "ignoreCreatedFolder": [],
+  "enableExperimentalHash": false,
+  "fileHashMap": {
+    "Tasks/Tasks datasheet.md": "d14f4dbb8b1fbeedbbe57db01315e7aebe490470c93e38475755ca867ac774cc",
+    "NotionExported/Dakara [TrueNAS SCALE]/Untitled Database.md": "6cf9a600b3d2e2829cc41d98b879cc042412f404a86e93e3e646c063f9445a20",
+    "NotionExported/IT Home TO-DOs/torrent client.md": "2dc9bfaf932a1e575d8ad4cee0c88405712d296bb911d5bafc0d143ebdc1a860",
+    "Dakara Tasks/Jellyfin library structure.md": "2361811da50c13979e6c49190898c09f66393cc6fe1737b735f990ca62f29d9b",
+    "Dakara Tasks/HEIMDALL add all links.md": "3bb51d975158a3d64070667653ad1d64169af0fb9b258f22e4f1468b531d70e1",
+    "Dakara Tasks/HOME ASSISTANT fix.md": "ec449955e7eba9a1571fe100b69d1be00a2749281dbcbaa068f31e2037ccbc5e",
+    "_Assets/Templates/Task template.md": "8bcc5f9be47926d63c9a67408768598e04780f652898ee57acedb8837e4bbb8a",
+    "_Assets/Task statuses.md": "7942a688d6c790aebf077dce1db836cd79276bdb31e5da2c2173c13b202c546b",
+    "_Assets/Templates/Steps and values callout.md": "c8a180487c1aadf94c742c9c06abe1a0b3c0c3d830da836a08727e42e1a2cf96",
+    "NotionExported/IT Home TO-DOs/write Docs - Truecharts setup/write Docs - Truecharts setup.md": "6a879e3fd3bf5720694b18e499c830461425b65799e7fdf28d5958d1657eb6b7",
+    "Dakara Tasks/Dakara Tasks.md": "6635153b49d9eb9f65b771dbd3a4b5a9ffd06c4e73548cdb6392679f61378939",
+    "Dakara Tasks/write Docs - Truecharts setup/write Docs - Truecharts setup.md": "d322db2f06d101d3095d7616f58851aca9edbee253b72d7b1e5e104a737e2c81",
+    "_Assets/Scripts/templater-folder-links.md": "2f7e74df7866d2d31df4e9a515c8fb54906e47ca21b890a43e05a5dbbc15ecc5",
+    "Dakara Tasks/Have Power and internet.md": "e61e6ff93b6f70909763afc2743ff6ccc6d61906180882de70a12f9ac19393eb",
+    "tmp Tasks/write Docs - Truecharts setup 1.md": "fda7bdd3f146e282407bdebb212c9b782c4d09ca02c1bae163950718080c9e4d",
+    "Dakara Tasks/write Docs - Ngrok.md": "684a30bc59dd4989c4d20211d1783c783a572b74b5a387c4a0e684fe06bb7736",
+    "Dakara Tasks/Cloudflared Tunnel.md": "f6661335502fefa6f24e0c7c1c546f5209096f84aaf4bbed04c0847812091fea",
+    "Dakara Tasks/write Docs - Nextcloud setup.md": "2291599a3989c236b17136732e18fc49a92dda1d0cf4a668abeebe39e17f8131"
+  }
+}

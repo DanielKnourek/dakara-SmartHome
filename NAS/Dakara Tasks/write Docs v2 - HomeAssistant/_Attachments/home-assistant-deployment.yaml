@@ -1,0 +1,432 @@
+configs:
+  configuration.default:
+    content: |-
+      default_config:
+      tts:
+        - platform: google_translate
+      automation: !include automations.yaml
+      script: !include scripts.yaml
+      scene: !include scenes.yaml
+  empty.default:
+    content: '{}'
+  recorder.default:
+    content: |-
+      recorder:
+        purge_keep_days: 30
+        commit_interval: 3
+        db_url: postgresql://home-assistant:op://Domov 1912/HomeAssistant admin/postgresql password@postgres:5432/home-assistant?sslmode=disable
+  script.sh:
+    content: >-
+
+      #!/bin/sh
+
+      if [ ! -f "/config/configuration.yaml" ]; then
+        echo "File [/config/configuration.yaml] does NOT exist. Creating..."
+        cp "/default/init/configuration.default" "/config/configuration.yaml"
+        if [ ! -f "/config/automations.yaml" ]; then
+          echo "File [/config/automations.yaml] does NOT exist. Creating..."
+          cp "/default/init/empty.default" "/config/automations.yaml"
+        fi
+        if [ ! -f "/config/scripts.yaml" ]; then
+          echo "File [/config/scripts.yaml] does NOT exist. Creating..."
+          cp "/default/init/empty.default" "/config/scripts.yaml"
+        fi
+        if [ ! -f "/config/scenes.yaml" ]; then
+          echo "File [/config/scenes.yaml] does NOT exist. Creating..."
+          cp "/default/init/empty.default" "/config/scenes.yaml"
+        fi
+      fi
+
+
+      chmod +rw "/config/configuration.yaml" || echo "Failed to set permissions
+      on [/config/configuration.yaml]"
+
+      if ! yq --exit-status '.recorder' < "/config/configuration.yaml" &>
+      /dev/null; then
+        echo "Section [recorder] does NOT exist in [/config/configuration.yaml]. Appending..."
+        echo "" >> "/config/configuration.yaml"
+        cat "/default/init/recorder.default" >> "/config/configuration.yaml"
+      fi
+
+      echo "Ensure DB URL is up to date
+      [postgresql://home-assistant:op://Domov 1912/HomeAssistant admin/postgresql password@postgres:5432/home-assistant?sslmode=disable]
+      in [/config/configuration.yaml]"
+
+      yq -i '.recorder.db_url =
+      "postgresql://home-assistant:op://Domov 1912/HomeAssistant admin/postgresql password@postgres:5432/home-assistant?sslmode=disable"'
+      "/config/configuration.yaml"
+
+
+      if ! yq --exit-status '.http' < "/config/configuration.yaml" &> /dev/null;
+      then
+        echo "Section [http] does NOT exist in [/config/configuration.yaml]. Appending..."
+        yq -i '.http = {}' "/config/configuration.yaml"
+      fi
+
+
+      echo "Matching server port to configured port [30103] in
+      [/config/configuration.yaml]"
+
+      yq -i '.http.server_port = 30103' "/config/configuration.yaml"
+
+      echo "Done"
+networks:
+  proxy:
+    external: True
+  addons:
+    external: True
+services:
+  home-assistant:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.homeassistant.rule: Host(`ha.dakara.stream`)
+      traefik.http.services.homeassistant.loadbalancer.server.port: '30103'
+    networks:
+      - default
+      - proxy
+      - addons
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - NET_BIND_SERVICE
+      - NET_RAW
+    cap_drop:
+      - ALL
+    depends_on:
+      init:        
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '-O'
+        - /dev/null
+        - http://127.0.0.1:30103/manifest.json
+      timeout: 5s
+    image: homeassistant/home-assistant:2025.12.4
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: 30103
+        target: 30103
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '0:0'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/home-assistant/config
+        target: /config
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/home-assistant/media
+        target: /media
+        type: bind
+  init:
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+    cap_drop:
+      - ALL
+    configs:
+      - source: configuration.default
+        target: /default/init/configuration.default
+      - source: empty.default
+        target: /default/init/empty.default
+      - source: recorder.default
+        target: /default/init/recorder.default
+      - mode: 493
+        source: script.sh
+        target: /default/init/script.sh
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    entrypoint:
+      - /bin/sh
+      - /default/init/script.sh
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      disable: True
+    image: mikefarah/yq:4.50.1
+    network_mode: none
+    platform: linux/amd64
+    privileged: False
+    restart: on-failure:1
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '0:0'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/home-assistant/config
+        target: /config
+        type: bind
+  postgres:
+    cap_drop:
+      - ALL
+    depends_on:
+      postgres_upgrade:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGDATA: /var/lib/postgresql/18/docker
+      PGID: '568'
+      PGPORT: '5432'
+      POSTGRES_DB: home-assistant
+      POSTGRES_PASSWORD: op://Domov 1912/HomeAssistant admin/postgresql password
+      POSTGRES_USER: home-assistant
+      PUID: '568'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - pg_isready
+        - '-h'
+        - 127.0.0.1
+        - '-p'
+        - '5432'
+        - '-U'
+        - home-assistant
+        - '-d'
+        - home-assistant
+      timeout: 5s
+    image: postgres:18.1-trixie
+    platform: linux/amd64
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    shm_size: 256M
+    stdin_open: False
+    tty: False
+    user: '999:999'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/home-assistant/postgres_data
+        target: /var/lib/postgresql
+        type: bind
+  postgres_upgrade:
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    entrypoint:
+      - /bin/bash
+      - '-c'
+      - /upgrade.sh
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGDATA: /var/lib/postgresql/18/docker
+      PGID: '568'
+      PGPORT: '5432'
+      POSTGRES_DB: home-assistant
+      POSTGRES_PASSWORD: op://Domov 1912/HomeAssistant admin/postgresql password
+      POSTGRES_USER: home-assistant
+      PUID: '568'
+      TARGET_VERSION: '18'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      disable: True
+    image: ixsystems/postgres-upgrade:1.1.4
+    network_mode: none
+    platform: linux/amd64
+    privileged: False
+    restart: on-failure:1
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '999:999'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/home-assistant/postgres_data
+        target: /var/lib/postgresql
+        type: bind
+volumes: {}
+x-notes: >
+  # Home Assistant
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [home-assistant]
+
+
+  #### Running user/group(s)
+
+
+  - User: root
+
+  - Group: root
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [postgres]
+
+
+  #### Running user/group(s)
+
+
+  - User: 999
+
+  - Group: 999
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [init]
+
+
+  **This container is short-lived.**
+
+
+  #### Running user/group(s)
+
+
+  - User: root
+
+  - Group: root
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [postgres_upgrade]
+
+
+  **This container is short-lived.**
+
+
+  #### Running user/group(s)
+
+
+  - User: 999
+
+  - Group: 999
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals:
+  - host: 0.0.0.0
+    name: Web UI
+    path: /
+    port: 30103
+    scheme: http

@@ -1,0 +1,269 @@
+{
+  "main": {
+    "id": "92753dbd6332cd15",
+    "type": "split",
+    "children": [
+      {
+        "id": "f1aa89e6ac05ae3d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e6683eaa676a9099",
+            "type": "leaf",
+            "pinned": true,
+            "state": {
+              "type": "obsidian-projects",
+              "state": {},
+              "pinned": true,
+              "icon": "layout",
+              "title": "Projects"
+            }
+          },
+          {
+            "id": "b99863678a8cb369",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Dakara Tasks/write Docs v2 - openclaw.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "write Docs v2 - openclaw"
+            }
+          },
+          {
+            "id": "36a708bdabc4d839",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Dakara Tasks/write Docs v2  - playit.gg/write Docs v2  - playit.gg.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "write Docs v2  - playit.gg"
+            }
+          },
+          {
+            "id": "7a403d45ddf69d5f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Dakara Tasks/write Docs v2 - Custom App script/write Docs v2 - Custom App script.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "write Docs v2 - Custom App script"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "0d7eefbee3594f56",
+    "type": "split",
+    "children": [
+      {
+        "id": "e77b9d9bd7b3f0fb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "592e22878ee8a787",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Průzkumník souborů"
+            }
+          },
+          {
+            "id": "bdb7c7242b81c292",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "restart",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Hledat"
+            }
+          },
+          {
+            "id": "3c305c498b978250",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 270.5
+  },
+  "right": {
+    "id": "5313af23b3332efa",
+    "type": "split",
+    "children": [
+      {
+        "id": "50e3fd9d2826b6fe",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8540a25a4e6d8eb6",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Dakara Tasks/write Docs - Nextcloud setup/write Docs - Nextcloud setup.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for write Docs - Nextcloud setup"
+            }
+          },
+          {
+            "id": "eedb27b9e1ab78a9",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Dakara Tasks/write Docs - Nextcloud setup/write Docs - Nextcloud setup.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from write Docs - Nextcloud setup"
+            }
+          },
+          {
+            "id": "90e3ba4901f5ec65",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "727f115694ce7d26",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Dakara Tasks/write Docs - Nextcloud setup/write Docs - Nextcloud setup.md"
+              },
+              "icon": "lucide-list",
+              "title": "Outline of write Docs - Nextcloud setup"
+            }
+          },
+          {
+            "id": "ef2e69dedb5146d2",
+            "type": "leaf",
+            "state": {
+              "type": "advanced-tables-toolbar",
+              "state": {},
+              "icon": "lucide-ghost",
+              "title": "advanced-tables-toolbar"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Otevřít rychlé přepínání": false,
+      "graph:Otevřít graf": false,
+      "canvas:Vytvořit nový canvas": false,
+      "daily-notes:Otevřít dnešní poznámku": false,
+      "templates:Vložit šablonu": false,
+      "command-palette:Otevřít paletu příkazů": false,
+      "bases:Vytvořit novou základnu": false,
+      "obsidian-projects:Open projects": false,
+      "templater-obsidian:Templater": false
+    }
+  },
+  "active": "b99863678a8cb369",
+  "lastOpenFiles": [
+    "Dakara Tasks/write Docs v2  - playit.gg/write Docs v2  - playit.gg.md",
+    "Dakara Tasks/write Docs v2 - Custom App script/write Docs v2 - Custom App script.md",
+    "Dakara Tasks/write Docs v2 - openclaw.md",
+    "Dakara Tasks/write Docs v2 - Custom App script/deploy_app.sh",
+    "Dakara Tasks/write Docs v2 - integratedmc/write Docs v2 - integratedmc.md",
+    "Dakara Tasks/AI_PROJECT_CONTEXT.md",
+    "Dakara Tasks/PROJECT_CONTEXT.md",
+    "UsedCommands.md",
+    "Dakara Tasks/write Docs v2 - integratedmc/_Attachments/minecraft-inegratedmc-deployment_v1_broken.yaml",
+    "Dakara Tasks/write Docs v2 - integratedmc/_Attachments/minecraft-inegratedmc-deployment_v2_broken.yaml",
+    "Dakara Tasks/write Docs v2 - integratedmc/_Attachments/minecraft-inegratedmc-deployment copy.yaml",
+    "Dakara Tasks/write Docs v2 - integratedmc/_Attachments/minecraft-inegratedmc-deployment.yaml",
+    "Dakara Tasks/write Docs v2 - integratedmc/_Attachments/playitgg-deployment.yaml",
+    "Dakara Tasks/write Docs v2 - integratedmc/_Attachments",
+    "Dakara Tasks/write Docs v2 - integratedmc",
+    "Dakara Tasks/write Docs v2 - lldap/write Docs v2 - lldap.md",
+    "playitgg-deployment.yaml.md",
+    "Dakara Tasks/write Docs v2.md",
+    "Dakara Tasks/Notes for BProj.md",
+    "Dakara Tasks/Výpisky k BProj/Výpisky k BProj.md",
+    "Dakara Tasks/BProj - (Second) First Contact.md",
+    "Dakara Tasks/feat - systemRescueLiveCD/feat - systemRescueLiveCD.md",
+    "Dakara Tasks/SRV and free DNS.md",
+    "Dakara Tasks/write Docs v2 - HomeAssistant/write Docs v2 - HomeAssistant.md",
+    "Dakara Tasks/write Docs v2 - Nextcloud/write Docs v2 - Nextcloud.md",
+    "Dakara Tasks/nextcloud client - trouble syncing.md",
+    "Dakara Tasks/write Docs - Nextcloud setup/write Docs - Nextcloud setup.md",
+    "Dakara Tasks/fix - nextcloud rescan.md",
+    "Dakara Tasks/Write Docs v2 - Homepage/Write Docs v2 - Homepage.md",
+    "Dakara Tasks/write Docs v2 - Traefik Setup.md",
+    "Dakara Tasks/write Docs v2 - All jellyfin mediaserver/write Docs v2 - All jellyfin mediaserver.md",
+    "sensitive-backup/0.3.x/0.3.x.md",
+    "_Assets/Templates/Task template.md",
+    "Dakara Tasks/write Docs v2 - All jellyfin mediaserver/_Attachments/Pasted image 20260107022229.png",
+    "Dakara Tasks/write Docs v2 - HomeAssistant/_Attachments/conf-onboarding-zigbee2mqtt.png",
+    "Dakara Tasks/write Docs v2 - HomeAssistant/_Attachments/Screen Shot 2026-01-04 at 22.59.31.png",
+    "Dakara Tasks/_Attachments/ha-localtuya 1.png",
+    "Dakara Tasks/_Attachments/ha-localtuya.png",
+    "Dakara Tasks/_Attachments/Pasted image 20250816183400.png",
+    "Dakara Tasks/_Attachments/Pasted image 20250816183343.png",
+    "Dakara Tasks/_Attachments/Pasted image 20250816183316.png",
+    "Dakara Tasks/write Docs - Nextcloud setup/_Attachments/conf-app-nextcloud-external-storage.png",
+    "Dakara Tasks/write Docs - Nextcloud setup/_Attachments/conf-app-nextcloud-lldap-4.png",
+    "Untitled.canvas",
+    "Dakara Tasks/Untitled.canvas"
+  ]
+}

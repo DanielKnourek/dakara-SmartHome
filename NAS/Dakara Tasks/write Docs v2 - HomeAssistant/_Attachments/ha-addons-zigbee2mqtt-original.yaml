@@ -1,0 +1,144 @@
+services:
+  zigbee2mqtt:
+    cap_add:
+      - NET_BIND_SERVICE
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    devices:
+      - >-
+        /dev/serial/by-id/usb-Texas_Instruments_TI_CC2531_USB_CDC___0X00124B001CD4EA72-if00:/dev/ttyACM0
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+      Z2M_ONBOARD_URL: http://0.0.0.0:30065
+      ZIGBEE2MQTT_CONFIG_FRONTEND_ENABLED: 'true'
+      ZIGBEE2MQTT_CONFIG_FRONTEND_HOST: 0.0.0.0
+      ZIGBEE2MQTT_CONFIG_FRONTEND_PORT: '30065'
+      ZIGBEE2MQTT_CONFIG_MQTT_BASE_TOPIC: zigbee2mqtt
+      ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD: op://Private/dakara mosquitto/password
+      ZIGBEE2MQTT_CONFIG_MQTT_SERVER: mqtt://mosquitto:1883
+      ZIGBEE2MQTT_CONFIG_MQTT_USER: mqtt_user
+      ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER: zstack
+      ZIGBEE2MQTT_CONFIG_SERIAL_PORT: >-
+        /dev/ttyACM0
+      ZIGBEE2MQTT_DATA: /app/data
+    group_add:
+      - 20
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '--spider'
+        - http://127.0.0.1:30065/
+      timeout: 5s
+    image: koenkk/zigbee2mqtt:2.7.2
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: 30065
+        target: 30065
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '568:568'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/zigbee2mqtt/data
+        target: /app/data
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: True
+        source: /run/udev
+        target: /run/udev
+        type: bind
+volumes: {}
+x-notes: >
+  # Zigbee2MQTT
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [zigbee2mqtt]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps, dialout
+
+
+  #### Passing Host Files, Devices, or Sockets into the Container
+
+
+  -
+  /dev/serial/by-id/usb-Texas_Instruments_TI_CC2531_USB_CDC___0X00124B001CD4EA72-if00
+  - (Read/Write)
+
+  - Udev Socket (/run/udev) - (Read Only)
+
+
+  ---
+
+
+  For additional configuration, you can either edit the
+
+  configuration file, use the web interface or add additional
+
+  environment variables.</br>
+
+  https://www.zigbee2mqtt.io/guide/configuration/#environment-variables
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals:
+  - host: 0.0.0.0
+    name: Web UI
+    path: /
+    port: 30065
+    scheme: http

@@ -1,0 +1,666 @@
+configs:
+  ix-imaginary-url.sh:
+    content: |-
+      #!/bin/bash
+      echo '## Configuring Imaginary...'
+      occ config:system:set preview_imaginary_url --value=http://imaginary:9000
+  ix-update-hosts-script.sh:
+    content: >-
+      #!/bin/bash
+
+      config_file="/var/www/html/config/config.php"
+
+
+      echo "Updating database and redis host in config.php"
+
+      sed -i "s/\('dbhost' => '\)[^']*postgres:5432',/\1postgres:5432',/"
+      "$$config_file" || { echo "Failed to update database host. Exiting...";
+      exit 1; }
+
+      occ config:system:set redis host --value="redis" || { echo "Failed to
+      update redis host. Continuing..."; exit 0; }
+  ix-update-trusted-domains-script.sh:
+    content: >-
+      #!/bin/bash
+
+      set_list() {
+        list_name="$${1:?"list_name is unset"}"
+        space_delimited_values="$${2:?"space_delimited_values is unset"}"
+
+        # Get current list
+        current_list="$$(occ config:system:get "$$list_name")"
+        # Convert newline separated values to space separated
+        current_list="$$(echo "$$current_list" | tr '\n' ' ')"
+        # Merge current list with new values
+        merged_list="$$(echo "$$current_list $$space_delimited_values" | tr ' ' '\n' | xargs -I{} echo {})"
+        # Remove duplicate values
+        merged_list="$$(echo "$$merged_list" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+
+        if [ -n "$${merged_list}" ]; then
+          # Remove current list, so we can replace it with the new one
+          occ config:system:delete "$$list_name" || return
+
+          IDX=0
+          # Replace spaces with newlines so the input can have
+          # mixed entries of space or new line separated values
+          echo "$$merged_list" | tr ' ' '\n' | while IFS= read -r value; do
+              # Skip empty values
+              if [ -z "$$value" ]; then
+                continue
+              fi
+
+              occ config:system:set "$$list_name" $$IDX --value="$$value"
+
+              IDX=$$((IDX+1))
+          done
+        fi
+      }
+
+
+      echo "Updating trusted domains. It will append new domains to the existing
+      list."
+
+      echo "If you see a domain that is not longer valid, you need to manually
+      remove it from the list in the config.php file."
+
+
+      set_list "trusted_domains" "$${NEXTCLOUD_TRUSTED_DOMAINS}" || { echo
+      "Failed to update trusted domains. Continuing..."; exit 0; }
+  limitrequestbody.conf:
+    content: LimitRequestBody 21474836480
+  occ:
+    content: |-
+      #!/bin/bash
+      uid="$$(id -u)"
+      gid="$$(id -g)"
+      if [ "$$uid" = "0" ]; then
+        user='www-data'
+        group='www-data'
+      else
+        user="$$uid"
+        group="$$gid"
+      fi
+      run_as() {
+        if [ "$$(id -u)" = "0" ]; then
+          su -p "$$user" -s /bin/bash -c "php /var/www/html/occ $$(printf '%q ' "$$@")"
+        else
+          /bin/bash -c "php /var/www/html/occ $$(printf '%q ' "$$@")"
+        fi
+      }
+      run_as "$$@"
+  opcache.ini:
+    content: |-
+      opcache.interned_strings_buffer=32
+      opcache.memory_consumption=128
+  permissions_actions_data:
+    content: >-
+      [{"read_only": false, "mount_path": "/mnt/permission/redis_redis_data",
+      "is_temporary": true, "identifier": "redis_redis_data", "recursive": true,
+      "mode": "check", "uid": 568, "gid": 568, "chmod": null}]
+  php.ini:
+    content: max_execution_time=7200
+networks:
+  proxy:
+    external: True
+services:
+  imaginary:
+    cap_add:
+      - SYS_NICE
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      TZ: Europe/Prague
+      UMASK: '002'
+      UMASK_SET: '002'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '--spider'
+        - http://127.0.0.1:9000/health
+      timeout: 5s
+    image: ghcr.io/nextcloud-releases/aio-imaginary:20251218_095503
+    platform: linux/amd64
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '568:568'
+  nextcloud:
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.nextcloud.rule: Host(`archive.dakara.stream`)
+      traefik.http.services.nextcloud.loadbalancer.server.port: '80'
+    build:
+      dockerfile_inline: >
+        FROM nextcloud:32.0.3
+
+        RUN apt update || { echo 'Failed to update apt cache. Exiting...'; exit
+        1; }
+        
+        RUN apt install -y --no-install-recommends ffmpeg || { echo 'Failed to
+        install [ffmpeg]. Exiting...'; exit 1; }
+      tags:
+        - >-
+          ix-nextcloud:32.0.3_fd53af28a2239d258a264acca185f6fd0671bc71b7fe731ff9844a66d0b54f6d
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - NET_BIND_SERVICE
+      - NET_RAW
+      - SETGID
+      - SETUID
+    cap_drop:
+      - ALL
+    configs:
+      - mode: 493
+        source: ix-imaginary-url.sh
+        target: /docker-entrypoint-hooks.d/before-starting/ix-imaginary-url.sh
+      - mode: 493
+        source: ix-update-hosts-script.sh
+        target: /docker-entrypoint-hooks.d/before-starting/ix-update-hosts-script.sh
+      - mode: 493
+        source: ix-update-trusted-domains-script.sh
+        target: >-
+          /docker-entrypoint-hooks.d/before-starting/ix-update-trusted-domains-script.sh
+      - source: limitrequestbody.conf
+        target: /etc/apache2/conf-enabled/limitrequestbody.conf
+      - mode: 493
+        source: occ
+        target: /usr/local/bin/occ
+      - source: opcache.ini
+        target: /usr/local/etc/php/conf.d/opcache-z-99.ini
+      - source: php.ini
+        target: /usr/local/etc/php/conf.d/nextcloud-z-99.ini
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      NEXTCLOUD_ADMIN_PASSWORD: op://Private/nextcloud admin/password
+      NEXTCLOUD_ADMIN_USER: asuran
+      NEXTCLOUD_DATA_DIR: /var/www/html/data
+      NEXTCLOUD_TRUSTED_DOMAINS: 127.0.0.1 localhost nextcloud 192.168.0.21 archive.dakara.stream
+      NVIDIA_VISIBLE_DEVICES: void
+      PHP_MEMORY_LIMIT: 512M
+      PHP_UPLOAD_LIMIT: 20G
+      POSTGRES_DB: nextcloud
+      POSTGRES_HOST: postgres:5432
+      POSTGRES_PASSWORD: op://Private/nextcloud admin/db password
+      POSTGRES_USER: nextcloud
+      REDIS_HOST: redis
+      REDIS_HOST_PASSWORD: op://Private/nextcloud admin/db password
+      REDIS_HOST_PORT: '6379'
+      TZ: Europe/Prague
+      UMASK: '002'
+      UMASK_SET: '002'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - curl
+        - '--request'
+        - GET
+        - '--silent'
+        - '--output'
+        - /dev/null
+        - '--show-error'
+        - '--fail'
+        - '--header'
+        - 'Host: localhost'
+        - http://127.0.0.1:80/status.php
+      timeout: 5s
+    image: >-
+      ix-nextcloud:32.0.3_fd53af28a2239d258a264acca185f6fd0671bc71b7fe731ff9844a66d0b54f6d
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: 30027
+        target: 80
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '0:0'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/HomeArchive/HomeArchiveData/Downloads
+        target: /mnt/HomeArchiveData/Downloads
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/HomeArchive/HomeArchiveData/Media
+        target: /mnt/HomeArchiveData/Media
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/HomeArchive/HomeArchiveData/Sdilene
+        target: /mnt/HomeArchiveData/Sdilene
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/nextcloud/skeleton
+        target: /mnt/skeleton
+        type: bind
+      - read_only: False
+        target: /tmp
+        type: volume
+        volume:
+          nocopy: False
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/nextcloud/app-data
+        target: /var/www/html
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/HomeArchive/nextcloud
+        target: /var/www/html/data
+        type: bind
+  nextcloud-whiteboard-server:
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.nextcloud-whiteboard.rule: Host(`whiteboard.dakara.stream`)
+      traefik.http.services.nextcloud-whiteboard.loadbalancer.server.port: '3002'
+    image: ghcr.io/nextcloud-releases/whiteboard:stable
+    environment:
+      NEXTCLOUD_URL: https://archive.dakara.stream
+      JWT_SECRET_KEY: "op://Private/nextcloud admin/Whiteboard JWT"
+  permissions:
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+    cap_drop:
+      - ALL
+    configs:
+      - mode: 320
+        source: permissions_actions_data
+        target: /script/actions.json
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    entrypoint:
+      - python3
+      - /script/permissions.py
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      TZ: Europe/Prague
+      UMASK: '002'
+      UMASK_SET: '002'
+    group_add:
+      - 568
+    healthcheck:
+      disable: True
+    image: ixsystems/container-utils:1.0.2
+    network_mode: none
+    platform: linux/amd64
+    privileged: False
+    restart: on-failure:1
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '0:0'
+    volumes:
+      - read_only: False
+        source: redis-data
+        target: /mnt/permission/redis_redis_data
+        type: volume
+        volume:
+          nocopy: False
+  postgres:
+    cap_drop:
+      - ALL
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+      postgres_upgrade:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      PGDATA: /var/lib/postgresql/18/docker
+      PGPORT: '5432'
+      POSTGRES_DB: nextcloud
+      POSTGRES_PASSWORD: op://Private/nextcloud admin/db password
+      POSTGRES_USER: nextcloud
+      TZ: Europe/Prague
+      UMASK: '002'
+      UMASK_SET: '002'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - pg_isready
+        - '-h'
+        - 127.0.0.1
+        - '-p'
+        - '5432'
+        - '-U'
+        - nextcloud
+        - '-d'
+        - nextcloud
+      timeout: 5s
+    image: postgres:18.1-trixie
+    platform: linux/amd64
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    shm_size: 256M
+    stdin_open: False
+    tty: False
+    user: '999:999'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/nextcloud/postgres
+        target: /var/lib/postgresql
+        type: bind
+  postgres_upgrade:
+    cap_drop:
+      - ALL
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    entrypoint:
+      - /bin/bash
+      - '-c'
+      - /upgrade.sh
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      PGDATA: /var/lib/postgresql/18/docker
+      PGPORT: '5432'
+      POSTGRES_DB: nextcloud
+      POSTGRES_PASSWORD: op://Private/nextcloud admin/db password
+      POSTGRES_USER: nextcloud
+      TARGET_VERSION: '18'
+      TZ: Europe/Prague
+      UMASK: '002'
+      UMASK_SET: '002'
+    group_add:
+      - 568
+    healthcheck:
+      disable: True
+    image: ixsystems/postgres-upgrade:1.1.4
+    network_mode: none
+    platform: linux/amd64
+    privileged: False
+    restart: on-failure:1
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '999:999'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/nextcloud/postgres
+        target: /var/lib/postgresql
+        type: bind
+  redis:
+    cap_drop:
+      - ALL
+    command:
+      - '--port'
+      - '6379'
+      - '--requirepass'
+      - op://Private/nextcloud admin/db password
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      REDIS_PASSWORD: op://Private/nextcloud admin/db password
+      TZ: Europe/Prague
+      UMASK: '002'
+      UMASK_SET: '002'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - redis-cli
+        - '-h'
+        - 127.0.0.1
+        - '-p'
+        - '6379'
+        - '-a'
+        - op://Private/nextcloud admin/db password
+        - ping
+      timeout: 5s
+    image: valkey/valkey:9.0.1
+    platform: linux/amd64
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '568:568'
+    volumes:
+      - read_only: False
+        source: redis-data
+        target: /data
+        type: volume
+        volume:
+          nocopy: False
+volumes:
+  redis-data: {}
+x-notes: >
+  # Nextcloud
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [imaginary]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [nextcloud]
+
+
+  #### Running user/group(s)
+
+
+  - User: root
+
+  - Group: root
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [postgres]
+
+
+  #### Running user/group(s)
+
+
+  - User: 999
+
+  - Group: 999
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [redis]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [permissions]
+
+
+  **This container is short-lived.**
+
+
+  #### Running user/group(s)
+
+
+  - User: root
+
+  - Group: root
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ### Container: [postgres_upgrade]
+
+
+  **This container is short-lived.**
+
+
+  #### Running user/group(s)
+
+
+  - User: 999
+
+  - Group: 999
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals:
+  - host: archive.dakara.stream
+    name: 1. Open Nextcloud
+    path: /
+    port: 443
+    scheme: https
+  - host: 0.0.0.0
+    name: X1 Local
+    path: /
+    port: 30027
+    scheme: http

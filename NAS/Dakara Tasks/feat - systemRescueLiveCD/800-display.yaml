@@ -1,0 +1,4 @@
+gui_autostart:
+  # Fix the screen flicker/refresh rate immediately on login
+  - name: force-60hz
+    exec: /bin/bash -c "export DISPLAY=:0.0; sleep 5; xrandr -r 60"

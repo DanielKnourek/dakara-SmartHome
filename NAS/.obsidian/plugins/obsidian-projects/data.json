@@ -1,0 +1,126 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "fieldConfig": {
+        "status": {
+          "options": [
+            "Proposal",
+            "Not started",
+            "In progress",
+            "Done",
+            "Graveyard"
+          ],
+          "richText": true
+        }
+      },
+      "defaultName": "",
+      "templates": [
+        "_Assets/Templates/Task template.md"
+      ],
+      "excludedNotes": [
+        "_Attachments/*",
+        "*.png"
+      ],
+      "isDefault": true,
+      "dataSource": {
+        "kind": "folder",
+        "config": {
+          "path": "Dakara Tasks/",
+          "recursive": true
+        }
+      },
+      "newNotesFolder": "",
+      "views": [
+        {
+          "config": {
+            "groupByField": "status",
+            "columns": {
+              "Proposal": {
+                "weight": 0
+              },
+              "Not started": {
+                "weight": 1
+              },
+              "In progress": {
+                "weight": 2
+              },
+              "Done": {
+                "weight": 3
+              },
+              "Graveyard": {
+                "weight": 4
+              },
+              "No status": {
+                "weight": 5
+              }
+            },
+            "columnWidth": 200
+          },
+          "filter": {
+            "conditions": []
+          },
+          "colors": {
+            "conditions": [
+              {
+                "color": "#06d083",
+                "condition": {
+                  "field": "status",
+                  "operator": "contains",
+                  "enabled": true,
+                  "value": "In Progress"
+                }
+              }
+            ]
+          },
+          "sort": {
+            "criteria": []
+          },
+          "id": "2d1bc1a2-7f98-422e-b3c6-105eb8ee61a2",
+          "name": "Board",
+          "type": "board"
+        },
+        {
+          "config": {
+            "fieldConfig": {
+              "path": {
+                "width": 267
+              }
+            },
+            "orderFields": [
+              "name",
+              "created",
+              "status",
+              "tags",
+              "updated",
+              "path"
+            ]
+          },
+          "filter": {
+            "conditions": []
+          },
+          "colors": {
+            "conditions": []
+          },
+          "sort": {
+            "criteria": []
+          },
+          "id": "c1f99c96-2e0b-4a2d-a605-77eba60b3829",
+          "name": "Table",
+          "type": "table"
+        }
+      ],
+      "id": "c8c4e65f-f9b6-45a1-acb5-7359eebb1194",
+      "name": "Dakara Tasks"
+    }
+  ],
+  "archives": [],
+  "preferences": {
+    "projectSizeLimit": 1000,
+    "frontmatter": {
+      "quoteStrings": "PLAIN"
+    },
+    "commands": [],
+    "linkBehavior": "open-note"
+  }
+}

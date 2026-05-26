@@ -1,0 +1,8 @@
+{
+  "promptDelete": false,
+  "readableLineLength": true,
+  "strictLineBreaks": true,
+  "newLinkFormat": "shortest",
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "./_Attachments"
+}

@@ -1,0 +1,129 @@
+configs:
+  mosquitto.conf:
+    content: |
+      # Changes in this file will be lost at the next restart
+      # Use /mosquitto/config_includes directory for additional configuration
+      listener 1883
+
+      log_dest stdout
+      allow_anonymous false
+
+      persistence true
+      persistence_location /mosquitto/data
+      autosave_interval 1800
+
+      include_dir /mosquitto/config_includes
+networks:
+  addons:
+    external: True
+services:
+  mosquitto:
+    cap_drop:
+      - ALL
+    configs:
+      - source: mosquitto.conf
+        target: /mosquitto/config/mosquitto.conf
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Europe/Prague
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    expose:
+      - 8081/tcp
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test: pidof mosquitto
+      timeout: 5s
+    image: eclipse-mosquitto:2.0.22
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: 1883
+        target: 1883
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '568:568'
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/mosquitto/config
+        target: /mosquitto/config_includes
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data0/app-data/mosquitto/data
+        target: /mosquitto/data
+        type: bind
+volumes: {}
+x-notes: >
+  # Eclipse Mosquitto
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [mosquitto]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  The file /mosquitto/config/mosquitto.conf is replaced on each container start.
+
+
+  Additional configuration files can be mounted in the
+  /mosquitto/config_includes directory.
+
+  These files will be automatically included in the main configuration file.
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals: []
