@@ -1,69 +1,122 @@
 #!/bin/bash
 
-# Usage: sudo ./deploy_app.sh <APP_NAME> <PATH_TO_COMPOSE_FILE> [ICON_URL]
-# or: sudo bash ./deploy_app.sh <APP_NAME> <PATH_TO_COMPOSE_FILE> [ICON_URL]
-
+# --- 1. Parsing Logic ---
 APP_NAME="$1"
-COMPOSE_FILE="$2"
-ICON_URL="$3"
 
-if [[ -z "$APP_NAME" || -z "$COMPOSE_FILE" ]]; then
-  echo "Usage: sudo $0 <app_name> <path_to_compose.yaml> [icon_url]"
+usage() {
+  echo "Usage: sudo $0 <APP_NAME> [options]"
+  echo "Options: -f (file), -i (icon)"
+  exit 1
+}
+
+if [[ -z "$APP_NAME" || "$APP_NAME" == "-h" ]]; then usage; fi
+shift
+
+COMPOSE_FILE=""
+ICON_URL=""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -f|--file) COMPOSE_FILE="$2"; shift 2 ;;
+    -i|--icon) ICON_URL="$2"; shift 2 ;;
+    *) echo "❌ Unknown argument: $1"; usage ;;
+  esac
+done
+
+if [[ -z "$COMPOSE_FILE" && -z "$ICON_URL" ]]; then
+  echo "❌ Error: Provide --file or --icon."
   exit 1
 fi
 
-# --- 1. Deploy the App (Standard) ---
-echo "------------------------------------------------"
-echo "Deploying Custom App: $APP_NAME"
+# --- 2. Deployment Logic ---
+if [[ -n "$COMPOSE_FILE" ]]; then
+  echo "------------------------------------------------"
+  echo "🚀 Deploying Custom App: $APP_NAME"
+  
+  if [[ ! -f "$COMPOSE_FILE" ]]; then
+    echo "❌ Error: File not found."
+    exit 1
+  fi
 
-YAML_CONTENT=$(cat "$COMPOSE_FILE")
-PAYLOAD=$(jq -n \
-  --arg app_name "$APP_NAME" \
-  --arg yaml "$YAML_CONTENT" \
-  '{
-    custom_app: true,
-    app_name: $app_name,
-    custom_compose_config_string: $yaml
-  }')
+  YAML_CONTENT=$(cat "$COMPOSE_FILE")
+  PAYLOAD=$(jq -n \
+    --arg app_name "$APP_NAME" \
+    --arg yaml "$YAML_CONTENT" \
+    '{
+      custom_app: true,
+      app_name: $app_name,
+      custom_compose_config_string: $yaml
+    }')
 
-# Run API call and capture output
-OUTPUT=$(midclt call app.create "$PAYLOAD" 2>&1)
-
-if [ $? -eq 0 ]; then
-  echo "✅ App created successfully."
-else
-  echo "❌ Failed to create app."
-  echo "Error details:"
-  echo "$OUTPUT"
-  exit 1
+  OUTPUT=$(midclt call app.create "$PAYLOAD" 2>&1)
+  if [ $? -eq 0 ]; then
+    echo "✅ App created successfully."
+  else
+    echo "❌ Failed to create app."
+    echo "$OUTPUT"
+    exit 1
+  fi
 fi
 
-# --- 2. Inject the Icon (Corrected Placement) ---
+# --- 3. Icon Injection Logic (Quote-Aware) ---
 if [[ -n "$ICON_URL" ]]; then
-  echo "🎨 Icon URL provided. Injecting into metadata..."
+  echo "------------------------------------------------"
+  echo "🎨 Icon update requested for: $APP_NAME"
 
   BASE_PATH="/mnt/.ix-apps"
   META_FILE="${BASE_PATH}/app_configs/${APP_NAME}/metadata.yaml"
 
-  echo "   Waiting for metadata file to be generated..."
-  for i in {1..10}; do
-    if [ -f "$META_FILE" ]; then
-      break
-    fi
-    sleep 1
-  done
+  # Wait loop
+  if [[ -n "$COMPOSE_FILE" ]]; then
+      echo "   Waiting for metadata file generation..."
+      for i in {1..10}; do
+        if [ -f "$META_FILE" ]; then break; fi
+        sleep 1
+      done
+  fi
 
   if [ -f "$META_FILE" ]; then
-    # 1. Remove any old icon line to avoid duplicates (safeguard)
-    sed -i '/^\s*icon:/d' "$META_FILE"
+    # 1. Clean up: Remove any existing icon lines
+    #    Regex matches: optional spaces, optional quote, icon, optional quote, colon
+    sed -i '/^\s*[\"]\?icon[\"]\?\s*:/d' "$META_FILE"
     
-    sed -i "/^metadata:/a \  \"icon\": \"$ICON_URL\"" "$META_FILE"
+    # 2. Check if 'metadata' key exists (with OR without quotes)
+    #    Regex looks for: start of line, optional quote, metadata, optional quote, colon
+    if grep -q "^[\"']\?metadata[\"']\?:" "$META_FILE"; then
+        echo "   'metadata' block found. Injecting icon..."
+        
+        # Inject the icon line immediately after the metadata line.
+        # We use \"icon\" (quoted) to match the style you found.
+        sed -i "/^[\"']\?metadata[\"']\?:/a \  \"icon\": \"$ICON_URL\"" "$META_FILE"
+    else
+        echo "   'metadata' block missing. Creating it..."
+        # Append the block using the quoted style to be safe
+        sed -i -e '$a\' "$META_FILE"
+        echo "\"metadata\":" >> "$META_FILE"
+        echo "  \"icon\": \"$ICON_URL\"" >> "$META_FILE"
+    fi
     
-    echo "✅ Icon injected correctly under 'metadata' section."
-    echo "   File modified: $META_FILE"
-    echo "   (Refresh your browser to see the change)"
+    echo "✅ Icon injected."
+    echo "   File: $META_FILE"
+
+  PAYLOAD=$(jq -n \
+    --arg app_name "$APP_NAME" \
+    --arg yaml "$YAML_CONTENT" \
+    '{
+      app_name: $app_name,
+      custom_compose_config_string: $yaml
+    }')
+    OUTPUT=$(midclt call app.update "$PAYLOAD" 2>&1)
+    if [ $? -eq 0 ]; then
+      echo "✅ App icon updated successfully."
+    else
+      echo "❌ Failed to update app icon."
+      echo "$OUTPUT"
+      exit 1
+    fi
   else
-    echo "⚠️  Metadata file not found at: $META_FILE"
-    echo "   The app might be taking too long to initialize."
+    echo "⚠️  Metadata file not found."
   fi
 fi
+
+echo "------------------------------------------------"
