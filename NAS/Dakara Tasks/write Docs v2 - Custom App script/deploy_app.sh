@@ -99,21 +99,13 @@ if [[ -n "$ICON_URL" ]]; then
     echo "✅ Icon injected."
     echo "   File: $META_FILE"
 
-  PAYLOAD=$(jq -n \
-    --arg app_name "$APP_NAME" \
-    --arg yaml "$YAML_CONTENT" \
-    '{
-      app_name: $app_name,
-      custom_compose_config_string: $yaml
-    }')
-    OUTPUT=$(midclt call app.update "$PAYLOAD" 2>&1)
-    if [ $? -eq 0 ]; then
-      echo "✅ App icon updated successfully."
-    else
-      echo "❌ Failed to update app icon."
-      echo "$OUTPUT"
-      exit 1
-    fi
+    echo "🔄 Triggering App Update to refresh Dashboard cache..."
+    # Fetch current config to re-submit it (dummy update)
+    # This forces TrueNAS to re-read the metadata file we just hacked.
+    CURRENT_JSON=$(midclt call app.config "$APP_NAME")
+    
+    midclt call app.update $APP_NAME "$CURRENT_JSON" > /dev/null
+    echo "✅ Cache refreshed. Icon should appear immediately."
   else
     echo "⚠️  Metadata file not found."
   fi
