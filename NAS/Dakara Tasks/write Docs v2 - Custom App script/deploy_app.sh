@@ -66,7 +66,7 @@ if [[ -n "$ICON_URL" ]]; then
   BASE_PATH="/mnt/.ix-apps"
   META_FILE="${BASE_PATH}/app_configs/${APP_NAME}/metadata.yaml"
 
-  # Wait loop
+  # Wait loop (For the MAIN APP)
   if [[ -n "$COMPOSE_FILE" ]]; then
       echo "   Waiting for metadata file generation..."
       for i in {1..10}; do
@@ -77,20 +77,14 @@ if [[ -n "$ICON_URL" ]]; then
 
   if [ -f "$META_FILE" ]; then
     # 1. Clean up: Remove any existing icon lines
-    #    Regex matches: optional spaces, optional quote, icon, optional quote, colon
     sed -i '/^\s*[\"]\?icon[\"]\?\s*:/d' "$META_FILE"
     
     # 2. Check if 'metadata' key exists (with OR without quotes)
-    #    Regex looks for: start of line, optional quote, metadata, optional quote, colon
     if grep -q "^[\"']\?metadata[\"']\?:" "$META_FILE"; then
         echo "   'metadata' block found. Injecting icon..."
-        
-        # Inject the icon line immediately after the metadata line.
-        # We use \"icon\" (quoted) to match the style you found.
         sed -i "/^[\"']\?metadata[\"']\?:/a \  \"icon\": \"$ICON_URL\"" "$META_FILE"
     else
         echo "   'metadata' block missing. Creating it..."
-        # Append the block using the quoted style to be safe
         sed -i -e '$a\' "$META_FILE"
         echo "\"metadata\":" >> "$META_FILE"
         echo "  \"icon\": \"$ICON_URL\"" >> "$META_FILE"
@@ -102,11 +96,10 @@ if [[ -n "$ICON_URL" ]]; then
     echo "🔄 Triggering App Update to refresh Dashboard cache..."
     
     TRIGGER_NAME="metadata-refresh"
-    # Minimal Alpine container that sleeps for 60s (so it stays 'running' long enough to exist)
-    # TRIGGER_YAML="services:\n  trigger:\n    image: alpine:latest\n    command: ['sleep', '60']"
+    # Inlined minimal Alpine config
+    TRIGGER_YAML="services:\n  metadata-refresh:\n    image: alpine"
     
-    TRIGGER_YAML=$(cat "/home/truenas_admin/deployment_test.yaml")
-    echo "Deploying dummy app to trigger cache refresh..."
+        echo "Deploying dummy app to trigger cache refresh..."
     TRIGGER_PAYLOAD=$(jq -n \
       --arg name "$TRIGGER_NAME" \
       --arg yaml "$TRIGGER_YAML" \
@@ -119,14 +112,21 @@ if [[ -n "$ICON_URL" ]]; then
     OUTPUT=$(midclt call app.create "$TRIGGER_PAYLOAD" 2>&1)
     echo "$OUTPUT"
     
-    # Wait loop
-    if [[ -n "$COMPOSE_FILE" ]]; then
-        echo "   Waiting for metadata file generation..."
-        for i in {1..10}; do
-          if [ -f "$META_FILE" ]; then break; fi
-          sleep 1
-        done
-    fi
+    # --- FIXED WAIT LOOP FOR TRIGGER APP ---
+    TRIGGER_META_FILE="${BASE_PATH}/app_configs/${TRIGGER_NAME}/metadata.yaml"
+    echo "   Waiting for trigger app registration..."
+    
+    # We wait specifically for the TRIGGER app's metadata file now
+    for i in {1..20}; do
+      if [ -f "$TRIGGER_META_FILE" ]; then 
+        echo "   ✅ Trigger app confirmed on disk."
+        break 
+      fi
+      sleep 1
+    done
+
+    # Small safety pause to let middleware finish its write operations
+    sleep 5
 
     echo "Deleting dummy app..."
     OUTPUT=$(midclt call app.delete "$TRIGGER_NAME" "{\"remove_images\": false}" 2>&1)
