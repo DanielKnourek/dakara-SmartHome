@@ -1,0 +1,141 @@
+services:
+  localai:
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '6'
+          memory: 8192M
+    environment:
+      GID: '568'
+      GROUP_ID: '568'
+      LOCALAI_ADDRESS: ':30286'
+      LOCALAI_BACKENDS_PATH: /backends
+      LOCALAI_CONFIG_DIR: /configuration
+      LOCALAI_DISABLE_WEBUI: 'false'
+      LOCALAI_MODELS_PATH: /models
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PUID: '568'
+      TZ: Etc/UTC
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - curl
+        - '--request'
+        - GET
+        - '--silent'
+        - '--output'
+        - /dev/null
+        - '--show-error'
+        - '--fail'
+        - http://127.0.0.1:30286/readyz
+      timeout: 5s
+    image: quay.io/go-skynet/local-ai:v4.3.1
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "proxy"
+      traefik.http.routers.localai.rule: "Host(`localai.dakara.stream`)"
+      traefik.http.routers.localai.middlewares: "authelia@docker"
+      traefik.http.services.localai.loadbalancer.server.port: "30286"
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: 30286
+        target: 30286
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    user: '568:568'
+    networks:
+      proxy: {}
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/AI/shared
+        target: /backends
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/AI/localai/config
+        target: /configuration
+        type: bind
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/AI/localai/models
+        target: /models
+        type: bind
+networks:
+  proxy:
+    external: True
+volumes: {}
+x-action-required: False
+x-notes: >
+  # LocalAI Inference Engine 🤖
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [localai]
+
+
+  #### Running user/group(s)
+
+
+  - User: 568
+
+  - Group: 568
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals:
+  - host: localai.dakara.stream
+    name: Web UI
+    path: /
+    port: 443
+    scheme: https
+  - host: 192.168.0.21
+    name: Local UI (Direct LAN)
+    path: /
+    port: 30286
+    scheme: http

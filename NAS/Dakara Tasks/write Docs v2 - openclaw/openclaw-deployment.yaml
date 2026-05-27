@@ -138,10 +138,10 @@ services:
       HTTP_PROXY: http://squid:3128
       HTTPS_PROXY: http://squid:3128
       NODE_ENV: production
-      NO_PROXY: localhost,127.0.0.1,config
+      NO_PROXY: localhost,127.0.0.1,config,localai
       http_proxy: http://squid:3128
       https_proxy: http://squid:3128
-      no_proxy: localhost,127.0.0.1,config
+      no_proxy: localhost,127.0.0.1,config,localai
       NVIDIA_VISIBLE_DEVICES: void
       PGID: '568'
       PUID: '568'

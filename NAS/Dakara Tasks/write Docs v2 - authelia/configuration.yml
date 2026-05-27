@@ -49,9 +49,17 @@ access_control:
     - domain: auth.dakara.stream
       policy: bypass
     
-    # OpenClaw Sandbox Authentication Rule
+    # OpenClaw Sandbox Authentication Rule (Restricted to agent_admin group)
     - domain: openclaw.dakara.stream
       policy: one_factor
+      subject:
+        - ["group:agent_admin"]
+
+    # LocalAI Admin Rule (Restricted to agent_admin group)
+    - domain: localai.dakara.stream
+      policy: one_factor
+      subject:
+        - ["group:agent_admin"]
 
 notifier:
   filesystem:

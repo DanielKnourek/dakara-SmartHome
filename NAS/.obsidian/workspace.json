@@ -20,6 +20,20 @@
             }
           },
           {
+            "id": "eb1e5d3b0e4c44e1",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Dakara Tasks/write Docs v2 - localai/write Docs v2 - localai.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "write Docs v2 - localai"
+            }
+          },
+          {
             "id": "6ffaa9e4383f8259",
             "type": "leaf",
             "state": {
@@ -60,9 +74,23 @@
               "icon": "lucide-file",
               "title": "write Docs v2 - Custom App script"
             }
+          },
+          {
+            "id": "39d10d0fba48c314",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Dakara Tasks/write Docs v2 - Custom App script/write Docs v2 - Custom App script.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "write Docs v2 - Custom App script"
+            }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -94,7 +122,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "restart",
+                "query": "icons",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -115,7 +143,8 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -218,8 +247,13 @@
       "templater-obsidian:Templater": false
     }
   },
-  "active": "b99863678a8cb369",
+  "active": "eb1e5d3b0e4c44e1",
   "lastOpenFiles": [
+    "Dakara Tasks/write Docs v2 - Custom App script/write Docs v2 - Custom App script.md",
+    "Dakara Tasks/write Docs v2 - localai/write Docs v2 - localai.md",
+    "Dakara Tasks/write Docs v2 - openclaw/write Docs v2 - openclaw.md",
+    "Dakara Tasks/write Docs v2 - localai/localai-deployment.yaml",
+    "Dakara Tasks/write Docs v2 - localai",
     "Dakara Tasks/write Docs v2 - authelia/write Docs v2 - authelia.md",
     "Dakara Tasks/write Docs v2 - openclaw/openclaw-deployment.env.yaml",
     "Dakara Tasks/write Docs v2 - authelia/configuration.env.yml",
@@ -229,10 +263,6 @@
     "Dakara Tasks/write Docs v2 - authelia/configuration.env.yaml",
     "Dakara Tasks/write Docs v2 - authelia/authelia-deployment copy.yaml",
     "Dakara Tasks/write Docs v2 - authelia/configuration copy.yml",
-    "Dakara Tasks/write Docs v2 - openclaw/write Docs v2 - openclaw.md",
-    "Dakara Tasks/write Docs v2 - authelia/authelia-deployment.yaml",
-    "Dakara Tasks/write Docs v2 - authelia",
-    "Dakara Tasks/write Docs v2 - Custom App script/write Docs v2 - Custom App script.md",
     "Dakara Tasks/write Docs v2  - playit.gg/write Docs v2  - playit.gg.md",
     "Dakara Tasks/write Docs v2 - integratedmc/write Docs v2 - integratedmc.md",
     "Dakara Tasks/AI_PROJECT_CONTEXT.md",
