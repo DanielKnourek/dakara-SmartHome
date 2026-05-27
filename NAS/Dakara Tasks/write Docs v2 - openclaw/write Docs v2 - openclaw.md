@@ -122,6 +122,19 @@ The layout consists of a short-lived `config` task that enforces initial configu
 
 ![[openclaw-deployment.yaml]]
 
+### 2.3.1 1Password Secret Injection (`op inject`)
+To inject your `OPENCLAW_GATEWAY_PASSWORD` securely using the space-free item name `openclaw_dakara`, you can use the **1Password CLI (`op`)** to render the deployment file:
+
+```sh
+op inject -f -i "openclaw-deployment.yaml" -o "openclaw-deployment.env.yaml"
+
+# created file copy to the server dataset
+# lazy person snippet
+sudo touch /mnt/ssd-data1/AI/openclaw-deployment.yaml
+sudo chmod 660 /mnt/ssd-data1/AI/openclaw-deployment.yaml
+sudo vim /mnt/ssd-data1/AI/openclaw-deployment.yaml
+```
+
 ### 2.4 Deploying to TrueNAS SCALE
 Deploy the application and register its custom web interface icon using the deployment helper utility:
 
@@ -142,32 +155,34 @@ Our deployment uses a phased approach to balance easy setup with robust access c
 #### 3.1.1 One-Time Device Pairing Approval
 When connecting a new browser or device for the first time, OpenClaw demands a secure, one-time device pairing approval. 
 
-Because the gateway runs on a customized port (`30262`) rather than the default (`18789`), the container's CLI tool must first be pointed to the active port before approving the pairing ID:
+*(Note: The `config` initialization container automatically configures the local CLI to target the active custom port `30262` on startup, so you can skip setting the port manually!)*
 
 1. Open a shell inside the running `openclaw` container (**TrueNAS SCALE** -> **Apps** -> **OpenClaw** -> **Workloads** -> **Shell**).
-2. Configure the local CLI tool to target the active port:
-   ```sh
-   openclaw config set gateway.port 30262
-   ```
-3. Approve the connection using the pairing ID shown in your browser interface:
+2. Directly approve the connection using the pairing ID shown in your browser interface:
    ```sh
    openclaw devices approve <YOUR_DEVICE_PAIRING_ID>
    ```
 4. Return to your browser window and click **Connect** again to complete authorization.
 
 ### 3.2 Phase 2: Reverse Proxy & LLDAP Authelia Trust (Production)
-- **Status:** Planned/Future Architecture (Not yet active).
-- **Details:** For long-term security, we migrate authentication from a single static password to a trusted, identity-aware reverse proxy linked with our centralized directory (**LLDAP**).
+- **Status:** Fully Active (SSO Integrated).
+- **Details:** For long-term security, we migrate authentication from a single static password to a trusted, identity-aware reverse proxy linked with our centralized directory (**LLDAP**). 
 
-1. **Proxy Trust:** We configure the gateway to trust headers passed by the frontend reverse proxy (Traefik v3.6):
+1. **Proxy Trust:** We configure the OpenClaw gateway to trust headers passed by the frontend reverse proxy (Traefik v3.6) by setting the auth mode to `trusted-proxy`, enabling local loopback for the CLI, declaring the trusted proxy subnet ranges (along with the exact Traefik internal IP and loopback addresses), and configuring the trusted header mapping:
    ```sh
-   node dist/index.js config set gateway.auth.mode header
+   node dist/index.js config set gateway.auth.mode trusted-proxy
+   node dist/index.js config set gateway.auth.trustedProxy.userHeader remote-user
+   node dist/index.js config set gateway.auth.trustedProxy.allowLoopback true
+   node dist/index.js config set gateway.trustedProxies '["127.0.0.1", "::1", "172.16.1.4", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]'
+   node dist/index.js config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
    ```
+   *(Note: This is automatically set by the `config` initialization container on startup).*
 2. **Authelia Integration:**
-   - Traefik intercepts incoming requests to `openclaw.dakara.stream` and forwards them to Authelia.
-   - Authelia authenticates the user against LLDAP (`ldap://192.168.0.21:3890`), checking membership in an approved group (e.g., `cn=ai_operators,ou=groups,DC=knourek,DC=com`).
-   - On success, Authelia/Traefik injects secure identity headers (`Remote-User`, `Remote-Groups`) and forwards the request to the OpenClaw container.
-3. **Spoof Protection:** Once header auth is active, direct access to the container port (`30262`) is blocked using firewalling and Docker network restrictions, preventing unauthenticated clients from spoofing these headers.
+   - Traefik intercepts incoming requests to `openclaw.dakara.stream` and forwards them to Authelia via the global `authelia@docker` middleware.
+   - Authelia authenticates the user against LLDAP (`ldap://192.168.0.21:3890`).
+   - On success, Authelia/Traefik injects the secure user context header (`Remote-User`) and forwards the request to the OpenClaw container.
+   - For full setup, deployment scripts, and architecture logs, see the SSO setup guide: [[write Docs v2 - authelia.md|write Docs v2 - authelia]].
+3. **Spoof Protection:** Direct WAN/LAN external traffic cannot bypass Authelia because Traefik handles ingress on the external `proxy` network, and the `openclaw` container has no direct physical host port mappings (it routes through Traefik). Direct LAN access on port `30262` is isolated, and only verified headers injected by Traefik are accepted.
 
 ---
 

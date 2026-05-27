@@ -5,10 +5,17 @@ configs:
 
       set -e
 
-      node dist/index.js config set gateway.auth.mode password
+      node dist/index.js config set gateway.auth.mode trusted-proxy
 
-      node dist/index.js config set
-      gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
+      node dist/index.js config set gateway.auth.trustedProxy.userHeader remote-user
+
+      node dist/index.js config set gateway.auth.trustedProxy.allowLoopback true
+
+      node dist/index.js config set gateway.trustedProxies '["127.0.0.1", "::1", "172.16.1.4", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]'
+
+      node dist/index.js config set gateway.port 30262
+
+      node dist/index.js config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
 
       node dist/index.js config set gateway.controlUi.allowedOrigins '[]'
   squid_config:
@@ -136,7 +143,6 @@ services:
       https_proxy: http://squid:3128
       no_proxy: localhost,127.0.0.1,config
       NVIDIA_VISIBLE_DEVICES: void
-      OPENCLAW_GATEWAY_PASSWORD: "op://Private/OpenClaw Dakara/password"
       PGID: '568'
       PUID: '568'
       TZ: Etc/UTC
@@ -169,6 +175,7 @@ services:
       traefik.enable: 'true'
       traefik.docker.network: "proxy"
       traefik.http.routers.openclaw.rule: Host(`openclaw.dakara.stream`)
+      traefik.http.routers.openclaw.middlewares: "authelia@docker"
       traefik.http.services.openclaw.loadbalancer.server.port: '30262'
     networks:
       sandbox_net: {}
