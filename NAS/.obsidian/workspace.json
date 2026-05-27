@@ -90,7 +90,7 @@
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -247,10 +247,10 @@
       "templater-obsidian:Templater": false
     }
   },
-  "active": "eb1e5d3b0e4c44e1",
+  "active": "6ffaa9e4383f8259",
   "lastOpenFiles": [
-    "Dakara Tasks/write Docs v2 - Custom App script/write Docs v2 - Custom App script.md",
     "Dakara Tasks/write Docs v2 - localai/write Docs v2 - localai.md",
+    "Dakara Tasks/write Docs v2 - Custom App script/write Docs v2 - Custom App script.md",
     "Dakara Tasks/write Docs v2 - openclaw/write Docs v2 - openclaw.md",
     "Dakara Tasks/write Docs v2 - localai/localai-deployment.yaml",
     "Dakara Tasks/write Docs v2 - localai",

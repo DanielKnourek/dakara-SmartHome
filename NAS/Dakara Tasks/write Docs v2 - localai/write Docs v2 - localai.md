@@ -132,10 +132,36 @@ To prevent OpenClaw's Squid proxy firewall from blocking LAN queries to the Loca
 ```
 
 ### 3.1 Custom Provider Mapping in OpenClaw
-1. Access your OpenClaw Control UI at `https://openclaw.dakara.stream`.
-2. Go to **Settings** $\rightarrow$ **AI Providers**.
-3. Add a new **Custom Provider**:
+
+You can register your new local model in OpenClaw using three different methods:
+
+#### Method A: Direct Chat / Interactive (Recommended & Easiest)
+Because OpenClaw is an autonomous agent, you can literally ask the agent in your chat window to configure itself!
+1. Open your browser and log in at `https://openclaw.dakara.stream`.
+2. Start a chat and tell the agent:
+   > *"Add localai as a custom provider. Base URL is `http://localai:30286/v1`, API Key is `local`, API Type is `openai-completions`, and add the model `<YOUR_MODEL_ID>`."*
+3. The agent will execute the necessary configurations behind the scenes and notify you when it's done!
+
+#### Method B: Container Command Line (CLI)
+You can directly inject the new provider and allowed models into your gateway configuration from the container shell:
+1. Open a shell inside the running `openclaw` container (**TrueNAS SCALE** $\rightarrow$ **Apps** $\rightarrow$ **OpenClaw** $\rightarrow$ **Workloads** $\rightarrow$ **Shell**).
+2. Execute the CLI command to register LocalAI as a provider (merging it into your existing providers list):
+   ```sh
+   openclaw config set models.providers.gem-3-local-fast '{"baseUrl": "http://localai:30286/v1", "apiKey": "local", "api": "openai-completions", "models": [{"id": "gemma-3-4b-it", "name": "gem-3-local (fast)"}]}' --merge
+   
+   openclaw config set models.providers.llama-3-local-fast '{"baseUrl": "http://localai:30286/v1", "apiKey": "local", "api": "openai-completions", "models": [{"id": "llama-3.2-3b-instruct:q4_k_m", "name": "llama-3-local (fast)"}]}' --merge
+   ```
+3. Set the newly registered model as your primary default model:
+   ```sh
+   openclaw models set localai/<YOUR_MODEL_ID>
+   ```
+
+#### Method C: Settings Interface (Web UI)
+1. Go to **Settings** $\rightarrow$ **AI Providers** in the Control UI.
+2. Add a new **Custom Provider**:
    * **Provider Type:** `openai-completions`
    * **Base URL:** `http://localai:30286/v1`
-   * **API Key:** `local` (any arbitrary string satisfies the client library)
-4. Confirm model detection and load your `.gguf` weights directly!
+   * **API Key:** `local`
+   * **Allowed Models:** Add the exact model ID `<YOUR_MODEL_ID>` to the allowlist.
+3. Fetch model list and switch to your local inference engine!
+

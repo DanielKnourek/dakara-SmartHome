@@ -49,7 +49,14 @@ access_control:
     - domain: auth.dakara.stream
       policy: bypass
     
-    # OpenClaw Sandbox Authentication Rule (Restricted to agent_admin group)
+    # Bypass Authelia for the OpenClaw mobile app/node connections
+    - domain: openclaw.dakara.stream
+      policy: bypass
+      resources:
+        - "^/api/.*"
+        - "^/gateway.*"  # Common OpenClaw WebSocket/pairing paths
+
+    # Require Authelia for the standard Web UI (Restricted to agent_admin group)
     - domain: openclaw.dakara.stream
       policy: one_factor
       subject:

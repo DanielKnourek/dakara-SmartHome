@@ -18,6 +18,10 @@ configs:
       node dist/index.js config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
 
       node dist/index.js config set gateway.controlUi.allowedOrigins '[]'
+
+      node dist/index.js config set gateway.bind lan
+
+      node dist/index.js config set plugins.entries.device-pair.config.publicUrl wss://openclaw.dakara.stream
   squid_config:
     content: |
       acl localnet dst 192.168.0.0/16
