@@ -1,8 +1,8 @@
----"\rcreated": 2024-01-17T18:21
+---created: 2024-01-17T18:21
 updated: 2024-01-17T18:42
 tags:
   - task
-status: Done
+status: In progress
 depends_on: []
 dependency_completion: 100%
 ---
@@ -33,5 +33,3 @@ if (tasks.length > 0) {
 ```
 ---
 
-- https://www.reddit.com/r/admincraft/comments/xcs1tk/guide_domain_names_and_minecraft_a_somewhat/
-- https://desec.io/

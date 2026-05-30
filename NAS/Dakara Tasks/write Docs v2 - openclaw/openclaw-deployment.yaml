@@ -5,9 +5,7 @@ configs:
 
       set -e
 
-      node dist/index.js config set gateway.auth.mode trusted-proxy
-
-      node dist/index.js config set gateway.auth.trustedProxy.userHeader remote-user
+      node dist/index.js config set gateway.auth.mode token
 
       node dist/index.js config set gateway.auth.trustedProxy.allowLoopback true
 

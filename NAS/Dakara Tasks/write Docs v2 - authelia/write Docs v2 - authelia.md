@@ -7,7 +7,6 @@ status: In progress
 depends_on:
   - "[[write Docs v2 - lldap.md|write Docs v2 - lldap]]"
 dependency_completion: 100%
-
 ---
 ```meta-bind
 INPUT[listSuggester(

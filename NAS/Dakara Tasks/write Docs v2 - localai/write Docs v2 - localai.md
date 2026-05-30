@@ -7,7 +7,6 @@ status: In progress
 depends_on:
   - "[[write Docs v2 - openclaw.md|write Docs v2 - openclaw]]"
 dependency_completion: 0%
-
 ---
 ```meta-bind
 INPUT[listSuggester(

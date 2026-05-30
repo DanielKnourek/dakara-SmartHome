@@ -3,10 +3,9 @@ created: 2024-01-17T18:21
 updated: 2024-01-17T18:42
 tags:
   - task
-status: In progress
+status: Done
 depends_on: []
 dependency_completion: 100%
-
 ---
 ```meta-bind
 INPUT[listSuggester(

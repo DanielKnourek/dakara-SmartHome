@@ -1,5 +1,4 @@
----
-created: 2024-01-17T18:21
+---"\rcreated": 2024-01-17T18:21
 updated: 2024-01-17T18:42
 tags:
   - task
@@ -8,7 +7,6 @@ depends_on:
   - "[[Dakara Tasks/write Docs v2 - Traefik Setup.md|write Docs v2 - Traefik Setup]]"
   - "[[write Docs v2 - HomeAssistant|write Docs v2 - HomeAssistant]]"
 dependency_completion: 100%
-
 ---
 ---
 created: 2024-01-17T18:21
