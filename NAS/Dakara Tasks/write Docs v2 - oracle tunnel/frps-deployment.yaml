@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  frps:
+    image: fatedier/frps:v0.58.1
+    container_name: frps
+    restart: unless-stopped
+    volumes:
+      - ./frps.toml:/etc/frp/frps.toml
+    ports:
+      - "7000:7000"
+      - "7500:7500"
+      - "25565:25565"
+      - "443:443"
+    command: -c /etc/frp/frps.toml

@@ -9,7 +9,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.docker.network: "proxy"
-      traefik.http.routers.jellyfin.rule: "Host(`kino.dakara.stream`)"
+      traefik.http.routers.jellyfin.rule: "Host(`kino.dakara.stream`) || Host(`kino.public.dakara.stream`)"
       traefik.http.services.jellyfin.loadbalancer.server.port: 8096
     networks:
       - default

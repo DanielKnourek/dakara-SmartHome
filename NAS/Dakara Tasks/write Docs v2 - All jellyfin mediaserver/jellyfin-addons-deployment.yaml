@@ -159,7 +159,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.docker.network: "proxy"
-      traefik.http.routers.jellyseerr.rule: "Host(`program.dakara.stream`) || Host(`jellyseerr.dakara.stream`)"
+      traefik.http.routers.jellyseerr.rule: "Host(`program.dakara.stream`)|| Host(`program.public.dakara.stream`) || Host(`jellyseerr.dakara.stream`)  "
       traefik.http.services.jellyseerr.loadbalancer.server.port: 5055
     networks:
       - default

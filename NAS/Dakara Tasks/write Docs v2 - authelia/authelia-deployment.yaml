@@ -20,7 +20,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: "proxy"
-      traefik.http.routers.authelia.rule: "Host(`auth.dakara.stream`)"
+      traefik.http.routers.authelia.rule: "Host(`auth.dakara.stream` || Host(`auth.public.dakara.stream`))"
       traefik.http.services.authelia.loadbalancer.server.port: "9091"
       # Global forwardAuth middleware registered in Traefik docker provider
       traefik.http.middlewares.authelia.forwardauth.address: "http://authelia:9091/api/verify?rd=https://auth.dakara.stream/"

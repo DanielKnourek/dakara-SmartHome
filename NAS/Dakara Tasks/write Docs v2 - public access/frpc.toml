@@ -1,0 +1,41 @@
+# /mnt/ssd-data0/app-data/frp/frpc.toml
+serverAddr = "op://Private/home1912.dakara.stream ORACLE/adress"
+serverPort = 7000
+
+auth.method = "token"
+auth.token = "op://Private/home1912.dakara.stream ORACLE/FRPS tunnel/auth.token"
+
+[[proxies]]
+name = "minecraft-java"
+type = "tcp"
+localIP = "192.168.0.21" # Host/bond0 IP where Minecraft container exposes port 25565
+localPort = 25565
+remotePort = 25565
+
+[[proxies]]
+name = "public-jellyfin"
+type = "https"
+customDomains = ["kino.public.dakara.stream"]
+localIP = "192.168.0.21"
+localPort = 443
+
+[[proxies]]
+name = "public-nextcloud"
+type = "https"
+customDomains = ["archive.public.dakara.stream"]
+localIP = "192.168.0.21"
+localPort = 443
+
+[[proxies]]
+name = "public-jellyseerr"
+type = "https"
+customDomains = ["program.public.dakara.stream"]
+localIP = "192.168.0.21"
+localPort = 443
+
+[[proxies]]
+name = "public-authelia"
+type = "https"
+customDomains = ["auth.public.dakara.stream"]
+localIP = "192.168.0.21"
+localPort = 443

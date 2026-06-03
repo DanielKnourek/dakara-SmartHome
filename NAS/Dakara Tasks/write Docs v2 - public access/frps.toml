@@ -1,0 +1,13 @@
+# vim  ~/frp/frps.toml
+bindPort = 7000
+vhostHttpsPort = 443
+
+# Security token to prevent unauthorized clients from connecting
+auth.method = "token"
+auth.token = "op://Private/home1912.dakara.stream ORACLE/FRPS tunnel/auth.token"
+
+# FRP Web Dashboard (To monitor active tunnels)
+webServer.addr = "0.0.0.0"
+webServer.port = 7500
+webServer.user = "admin"
+webServer.password = "op://Private/home1912.dakara.stream ORACLE/FRPS tunnel/webServer.password"
