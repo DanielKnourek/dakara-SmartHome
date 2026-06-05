@@ -159,7 +159,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.docker.network: "proxy"
-      traefik.http.routers.jellyseerr.rule: "Host(`program.dakara.stream`)|| Host(`program.public.dakara.stream`) || Host(`jellyseerr.dakara.stream`)  "
+      traefik.http.routers.jellyseerr.rule: "Host(`program.dakara.stream`) || Host(`jellyseerr.dakara.stream`)"
       traefik.http.services.jellyseerr.loadbalancer.server.port: 5055
     networks:
       - default
@@ -174,6 +174,26 @@ services:
       - 5055:5055
     volumes:
       - /mnt/ssd-data0/app-data/jellyfin-addons/configs/jellyseerr:/app/config
+    restart: unless-stopped
+  jellyseerr-public:
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: "proxy"
+      traefik.http.routers.jellyseerr-public.rule: "Host(`program.public.dakara.stream`)"
+      traefik.http.services.jellyseerr-public.loadbalancer.server.port: 5055
+    networks:
+      - default
+      - proxy
+      - jellyfin-addons
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr-public
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Prague
+    volumes:
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/jellyseerr-public:/app/config
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/jellyseerr/cache:/app/config/cache
+      - /mnt/ssd-data0/app-data/jellyfin-addons/configs/jellyseerr/db:/app/config/db
     restart: unless-stopped
 
 x-notes: >
@@ -223,28 +243,33 @@ x-portals:
     path: /
     port: 443
     scheme: https
+  - host: program.public.dakara.stream
+    name: 02. Jellyseerr (public)
+    path: /
+    port: 443
+    scheme: https
   - host: torrent.dakara.stream
-    name: 02. qBittorrent
+    name: 03. qBittorrent
     path: /
     port: 443
     scheme: https
   - host: sonarr.dakara.stream
-    name: 03. Sonarr (TV)
+    name: 04. Sonarr (TV)
     path: /
     port: 443
     scheme: https
   - host: radarr.dakara.stream
-    name: 04. Radarr (Movies)
+    name: 05. Radarr (Movies)
     path: /
     port: 443
     scheme: https
   - host: prowlarr.dakara.stream
-    name: 05. Prowlarr (Indexers)
+    name: 06. Prowlarr (Indexers)
     path: /
     port: 443
     scheme: https
   - host: jackett.dakara.stream
-    name: 06. Jackett
+    name: 07. Jackett
     path: /
     port: 443
     scheme: https
