@@ -33,8 +33,7 @@
               "title": "write Docs v2 - oracle tunnel"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -91,8 +90,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 270.5,
-    "collapsed": true
+    "width": 270.5
   },
   "right": {
     "id": "5313af23b3332efa",
@@ -191,11 +189,11 @@
       "templater-obsidian:Templater": false
     }
   },
-  "active": "de35fad516eb9692",
+  "active": "e6683eaa676a9099",
   "lastOpenFiles": [
+    "Dakara Tasks/write Docs v2 - oracle tunnel/write Docs v2 - oracle tunnel.md",
     "Dakara Tasks/Dakara Tasks.md",
     "Dakara Tasks/write Docs v2 - public access/write Docs v2 - public access.md",
-    "Dakara Tasks/write Docs v2 - oracle tunnel/write Docs v2 - oracle tunnel.md",
     "Dakara Tasks/write Docs v2 - public access/frpc.toml",
     "Dakara Tasks/write Docs v2 - oracle tunnel/frpc.toml",
     "Dakara Tasks/write Docs v2 - oracle tunnel/frps.toml",
