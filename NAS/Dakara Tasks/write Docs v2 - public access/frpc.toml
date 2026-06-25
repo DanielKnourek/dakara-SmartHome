@@ -13,6 +13,13 @@ localPort = 25565
 remotePort = 25565
 
 [[proxies]]
+name = "factorio-game"
+type = "udp"
+localIP = "192.168.0.21"
+localPort = 25520
+remotePort = 25520
+
+[[proxies]]
 name = "public-jellyfin"
 type = "https"
 customDomains = ["kino.public.dakara.stream"]

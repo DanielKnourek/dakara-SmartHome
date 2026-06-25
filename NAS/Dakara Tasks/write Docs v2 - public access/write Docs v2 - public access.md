@@ -7,12 +7,16 @@ status: In progress
 depends_on:
   - "[[Dakara Tasks/write Docs v2 - oracle tunnel/write Docs v2 - oracle tunnel.md|write Docs v2 - oracle tunnel]]"
   - "[[Dakara Tasks/write Docs v2 - Traefik Setup.md|write Docs v2 - Traefik Setup]]"
+  - "[[Dakara Tasks/write Docs v2 - Factorio server/write Docs v2 - Factorio server.md|write Docs v2 - Factorio server]]"
 dependency_completion: 100%
 ---
 
 # Exposing Selected Services Publicly (FRP Tunnel + Dual-Host Routing)
 
 This document provides step-by-step instructions for setting up public access to your local services (like Jellyfin and Nextcloud) using the Oracle Cloud Infrastructure (OCI) VM as a public entrypoint, while preserving direct local network speeds when accessing them from home.
+
+> [!NOTE]
+> This tunnel configuration has been updated to also route game traffic for the **Factorio Server** (UDP `25520`). For setup details, see [[Dakara Tasks/write Docs v2 - Factorio server/write Docs v2 - Factorio server.md|write Docs v2 - Factorio server]].
 
 ---
 
@@ -94,6 +98,7 @@ services:
       - "7000:7000"
       - "443:443"
       - "25565:25565" # Minecraft
+      - "25520:25520/udp" # Factorio Game (UDP)
 ```
     
 3.  **Open VM Host Firewall (UFW) & OCI Security List:**
@@ -131,7 +136,7 @@ docker compose down && docker compose up -d
 
 Configure your local client to tunnel traffic for the new public subdomains:
 
-1.  **Update Client Config `frpc.toml`:**
+1.  **Update Client Config [[Dakara Tasks/write Docs v2 - public access/frpc.toml|frpc.toml]]:**
     SSH into TrueNAS Scale and edit the client config file:
 ```sh
 sudo vim /mnt/ssd-data0/app-data/frp/frpc.toml
@@ -154,6 +159,13 @@ type = "tcp"
 localIP = "192.168.0.21"
 localPort = 25565
 remotePort = 25565
+
+[[proxies]]
+name = "factorio-game"
+type = "udp"
+localIP = "192.168.0.21"
+localPort = 25520
+remotePort = 25520
 
 [[proxies]]
 name = "public-web-wildcard"
@@ -179,6 +191,13 @@ type = "tcp"
 localIP = "192.168.0.21"
 localPort = 25565
 remotePort = 25565
+
+[[proxies]]
+name = "factorio-game"
+type = "udp"
+localIP = "192.168.0.21"
+localPort = 25520
+remotePort = 25520
 
 [[proxies]]
 name = "public-jellyfin"

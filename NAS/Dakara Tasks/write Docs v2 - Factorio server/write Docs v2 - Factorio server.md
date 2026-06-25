@@ -120,3 +120,65 @@ The server runs using `factoriotools/factorio:latest-rootless` (configured for S
 
 ![[factorio-server-deployment.yaml]]
 
+---
+
+## 🌐 Exposing Publicly via FRP Tunnel (Optional)
+
+If you want to make your Factorio server accessible over the public internet, you can tunnel the game traffic through the Oracle Cloud (OCI) VM using **FRP (Fast Reverse Proxy)**. 
+
+> [!WARNING]
+> For security reasons, we **only** forward the game port (`25520/udp`) to allow players to connect. The RCON command console port (`25521/tcp`) is **not** forwarded and remains local-only.
+
+### Step 1: Oracle VM Configuration (FRP Server)
+
+SSH into your Oracle VM instance (`ubuntu@79.76.118.187`) and update the configs:
+
+1. **Update `docker-compose.yml` / [[Dakara Tasks/write Docs v2 - public access/frps-deployment.yaml|frps-deployment.yaml]]:**
+   Add port `25520/udp` (Factorio UDP protocol) to the mapped ports of the `frps` service:
+   ```yaml
+   ports:
+     - "7000:7000"
+     - "25565:25565" # Minecraft
+     - "443:443"     # Web Ingress
+     - "25520:25520/udp" # Factorio Game (UDP)
+   ```
+2. **Open VM Host Firewall (UFW):**
+   ```sh
+   sudo ufw allow 25520/udp
+   ```
+3. **Configure the OCI Security List in Oracle Console:**
+   Add an ingress rule to allow public incoming UDP traffic on port `25520`:
+   - **Source Type:** `CIDR`
+   - **Source CIDR:** `0.0.0.0/0`
+   - **IP Protocol:** `UDP`
+   - **Destination Port Range:** `25520`
+   - **Description:** `Factorio Game Port (FRP Ingress)`
+4. **Restart FRP Server:**
+   ```sh
+   cd ~/frp
+   docker compose down && docker compose up -d
+   ```
+
+### Step 2: TrueNAS Scale Configuration (FRP Client)
+
+SSH into your TrueNAS Scale host and add the proxy routing block for the game to your client configuration:
+
+1. **Edit client config [[Dakara Tasks/write Docs v2 - public access/frpc.toml|frpc.toml]]:**
+   ```sh
+   sudo vim /mnt/ssd-data0/app-data/frp/frpc.toml
+   ```
+2. **Add proxy configuration block:**
+   ```toml
+   [[proxies]]
+   name = "factorio-game"
+   type = "udp"
+   localIP = "192.168.0.21"
+   localPort = 25520
+   remotePort = 25520
+   ```
+3. **Restart the FRP Client:**
+   ```sh
+   sudo docker restart frpc
+   ```
+
+
