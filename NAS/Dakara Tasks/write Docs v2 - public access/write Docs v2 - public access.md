@@ -78,6 +78,7 @@ SSH into your Oracle VM instance (`ubuntu@79.76.118.187`) and perform these upda
 ```toml
 // vim ~/frp/frps.toml
 bindPort = 7000
+quicBindPort = 7000 # Enable QUIC transport (UDP)
 vhostHttpsPort = 443
 ```
     
@@ -95,16 +96,18 @@ services:
     volumes:
       - ./frps.toml:/etc/frp/frps.toml
     ports:
-      - "7000:7000"
+      - "7000:7000/tcp"
+      - "7000:7000/udp" # For QUIC tunnel transport
       - "443:443"
       - "25565:25565" # Minecraft
       - "25520:25520/udp" # Factorio Game (UDP)
 ```
     
 3.  **Open VM Host Firewall (UFW) & OCI Security List:**
-    On the VM CLI, open port 443:    
+    On the VM CLI, open port 443 (HTTP/S) and port 7000/udp (for QUIC tunnel transport):    
 ```sh
 sudo ufw allow 443/tcp
+sudo ufw allow 7000/udp
 ```
     
 > [!IMPORTANT]
@@ -114,14 +117,22 @@ sudo ufw allow 443/tcp
 > 3. In the left-hand sidebar, under **Resources**, click on **Security Lists**.
 > 4. Click on the default security list: **`Default Security List for vcn-dakara-tunnel`**.
 > 5. Click the **Add Ingress Rules** button.
-> 6. Fill in the ingress rule options:
+> 6. Fill in the ingress rule options to expose HTTP/S (443):
 >    * **Source Type:** `CIDR`
 >    * **Source CIDR:** `0.0.0.0/0` (Allows public internet access)
 >    * **IP Protocol:** `TCP`
 >    * **Source Port Range:** (Leave empty for All)
 >    * **Destination Port Range:** `443`
 >    * **Description:** `FRP Public HTTPS Ingress (SNI Routing)`
-> 7. Click the **Add Ingress Rules** button to apply the change.
+> 7. Click the **Add Ingress Rules** button.
+> 8. Add a second ingress rule to expose the QUIC tunnel port (`7000/udp`):
+>    * **Source Type:** `CIDR`
+>    * **Source CIDR:** `0.0.0.0/0`
+>    * **IP Protocol:** `UDP`
+>    * **Source Port Range:** (Leave empty for All)
+>    * **Destination Port Range:** `7000`
+>    * **Description:** `FRP Tunnel Traffic over QUIC (UDP)`
+> 9. Click the **Add Ingress Rules** button to apply the changes.
     
     
 4.  **Restart FRP Server:**
@@ -158,6 +169,7 @@ This forwards **all** subdomains under `*.public.dakara.stream` to your home Tra
 ```toml
 serverAddr = "79.76.118.187"
 serverPort = 7000
+transport.protocol = "quic"
 auth.method = "token"
 auth.token = "YOUR_FRP_SECRET_TOKEN"
 
@@ -190,6 +202,7 @@ This explicitly defines each public subdomain.
 ```toml
 serverAddr = "79.76.118.187"
 serverPort = 7000
+transport.protocol = "quic"
 auth.method = "token"
 auth.token = "YOUR_FRP_SECRET_TOKEN"
 

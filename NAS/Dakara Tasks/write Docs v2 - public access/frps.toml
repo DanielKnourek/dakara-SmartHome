@@ -1,5 +1,6 @@
 # vim  ~/frp/frps.toml
 bindPort = 7000
+quicBindPort = 7000
 vhostHttpsPort = 443
 
 # Security token to prevent unauthorized clients from connecting

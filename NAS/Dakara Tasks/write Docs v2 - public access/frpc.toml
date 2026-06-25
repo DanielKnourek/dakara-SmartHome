@@ -1,6 +1,7 @@
 # /mnt/ssd-data0/app-data/frp/frpc.toml
 serverAddr = "{{ op://Private/home1912.dakara.stream ORACLE/adress }}"
 serverPort = 7000
+transport.protocol = "quic"
 
 auth.method = "token"
 auth.token = "{{ op://Private/home1912.dakara.stream ORACLE/FRPS tunnel/auth.token }}"
