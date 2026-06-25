@@ -1,0 +1,115 @@
+services:
+  factorio:
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '6'
+          memory: 4096M
+    environment:
+      DLC_SPACE_AGE: 'true'
+      GENERATE_NEW_SAVE: 'false'
+      GID: '568'
+      GROUP_ID: '568'
+      LOAD_LATEST_SAVE: 'true'
+      NVIDIA_VISIBLE_DEVICES: void
+      PGID: '568'
+      PORT: '25520'
+      PUID: '568'
+      RCON_PORT: '25521'
+      SAVE_NAME: _autosave1
+      TOKEN: a248456bb1d25ed77ac54d69d51255
+      TZ: Etc/UTC
+      UID: '568'
+      UMASK: '002'
+      UMASK_SET: '002'
+      UPDATE_MODS_ON_START: 'false'
+      USERNAME: Kdandikk
+      USER_ID: '568'
+    group_add:
+      - 568
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_interval: 2s
+      start_period: 15s
+      test:
+        - CMD
+        - timeout
+        - '1'
+        - bash
+        - '-c'
+        - cat < /dev/null > /dev/tcp/127.0.0.1/25521
+      timeout: 5s
+    image: factoriotools/factorio:latest-rootless
+    platform: linux/amd64
+    ports:
+      - mode: ingress
+        protocol: udp
+        published: 25520
+        target: 25520
+      - mode: ingress
+        protocol: tcp
+        published: 25521
+        target: 25521
+    privileged: False
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    stdin_open: False
+    tty: False
+    volumes:
+      - bind:
+          create_host_path: False
+          propagation: rprivate
+        read_only: False
+        source: /mnt/ssd-data1/factorio-server
+        target: /factorio
+        type: bind
+volumes: {}
+x-action-required: False
+x-notes: >
+  # Factorio Server
+
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+
+  ---
+
+
+  ### Container: [factorio]
+
+
+  #### Running user/group(s)
+
+
+  - User: unknown
+
+  - Group: unknown
+
+  - Supplementary Groups: apps
+
+
+  ---
+
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/truenas/apps
+x-portals: []
