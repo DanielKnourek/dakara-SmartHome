@@ -1,2 +1,6 @@
 *.iso
 sensitive-backup/
+*.secret.*
+*.env.yaml
+*.env.yml
+*.env

@@ -25,12 +25,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Dakara Tasks/write Docs v2 - Factorio server/write Docs v2 - Factorio server.md",
+                "file": "Dakara Tasks/write Docs v2 - public access/write Docs v2 - public access.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "write Docs v2 - Factorio server"
+              "title": "write Docs v2 - public access"
             }
           },
           {
@@ -39,16 +39,16 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Dakara Tasks/write Docs v2 - oracle tunnel/write Docs v2 - oracle tunnel.md",
+                "file": "Dakara Tasks/write Docs v2 - Factorio server/write Docs v2 - Factorio server.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "write Docs v2 - oracle tunnel"
+              "title": "write Docs v2 - Factorio server"
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -204,14 +204,15 @@
       "templater-obsidian:Templater": false
     }
   },
-  "active": "e8b9dbbcb61a206b",
+  "active": "de35fad516eb9692",
   "lastOpenFiles": [
     "Dakara Tasks/write Docs v2 - oracle tunnel/write Docs v2 - oracle tunnel.md",
+    "Dakara Tasks/write Docs v2 - public access/write Docs v2 - public access.md",
+    "Dakara Tasks/write Docs v2 - public access/frpc.secret.toml",
     "Dakara Tasks/write Docs v2 - Factorio server/write Docs v2 - Factorio server.md",
     "Dakara Tasks/write Docs v2 - Factorio server/factorio-server-deployment.yaml",
     "Dakara Tasks/write Docs v2 - Factorio server",
     "Dakara Tasks/Dakara Tasks.md",
-    "Dakara Tasks/write Docs v2 - public access/write Docs v2 - public access.md",
     "Dakara Tasks/write Docs v2 - public access/frpc.toml",
     "Dakara Tasks/write Docs v2 - oracle tunnel/frpc.toml",
     "Dakara Tasks/write Docs v2 - oracle tunnel/frps.toml",
@@ -220,7 +221,6 @@
     "Dakara Tasks/write Docs v2 - public access/frps-deployment.yaml",
     "Dakara Tasks/write Docs v2 - public access",
     "Dakara Tasks/write Docs v2 - integratedmc/write Docs v2 - integratedmc.md",
-    "Dakara Tasks/write Docs v2 - oracle tunnel",
     "Dakara Tasks/write Docs v2  - playit.gg/write Docs v2  - playit.gg.md",
     "Dakara Tasks/write Docs v2 - openclaw/write Docs v2 - openclaw.md",
     "Dakara Tasks/write Docs v2 - authelia/write Docs v2 - authelia.md",

@@ -1,10 +1,12 @@
----created: 2024-01-17T18:21
+---
+created: 2024-01-17T18:21
 updated: 2024-01-17T18:42
 tags:
   - task
 status: In progress
 depends_on: []
 dependency_completion: 100%
+
 ---
 ```meta-bind
 INPUT[listSuggester(
@@ -161,13 +163,9 @@ SSH into your Oracle VM instance (`ubuntu@79.76.118.187`) and update the configs
 
 ### Step 2: TrueNAS Scale Configuration (FRP Client)
 
-SSH into your TrueNAS Scale host and add the proxy routing block for the game to your client configuration:
+To add the proxy routing block for the game, edit your client configuration template and regenerate the configuration with 1Password:
 
-1. **Edit client config [[Dakara Tasks/write Docs v2 - public access/frpc.toml|frpc.toml]]:**
-   ```sh
-   sudo vim /mnt/ssd-data0/app-data/frp/frpc.toml
-   ```
-2. **Add proxy configuration block:**
+1. **Add the proxy block to your [[Dakara Tasks/write Docs v2 - public access/frpc.toml|frpc.toml]] template:**
    ```toml
    [[proxies]]
    name = "factorio-game"
@@ -176,9 +174,39 @@ SSH into your TrueNAS Scale host and add the proxy routing block for the game to
    localPort = 25520
    remotePort = 25520
    ```
+
+2. **Regenerate and secure your config on TrueNAS Scale:**
+   Run the 1Password secret injection command:
+   ```sh
+   # Run the secret injection (change directory and generate populated config in one line)
+   cd ~/dakara-SmartHome/NAS/"Dakara Tasks/write Docs v2 - public access" && op inject -f -i "frpc.toml" -o "frpc.secret.toml"
+   sudo cp frpc.secret.toml /mnt/ssd-data0/app-data/frp/frpc.toml
+   sudo chmod 660 /mnt/ssd-data0/app-data/frp/frpc.toml
+   sudo chown apps:apps /mnt/ssd-data0/app-data/frp/frpc.toml
+   ```
+
 3. **Restart the FRP Client:**
    ```sh
    sudo docker restart frpc
    ```
 
+### Step 3: SRV DNS Record Setup (Optional - Port Hiding)
 
+Since the public port `25520` is not the default Factorio port (`34197`), players would normally need to connect using `public.dakara.stream:25520`. To allow players to connect using just a subdomain (like `play.factorio.dakara.stream`) without typing the port, you can create a **DNS SRV Record** in Cloudflare.
+
+Factorio natively supports SRV record lookups under the `_factorio._udp` service template.
+
+Configure the SRV record in Cloudflare as follows:
+
+| Field                  | Value                          |
+| ---------------------- | ------------------------------ |
+| **Name**               | `_factorio._udp.play.factorio` |
+| **Type**               | `SRV`                          |
+| **Priority**           | `10`                           |
+| **Weight**             | `10`                           |
+| **Port**               | `34197`                        |
+| **Target**             | `public.dakara.stream`         |
+| **TTL**                | `Auto`                         |
+| **Comment (optional)** | `79.76.118.187:25520`          |
+
+Once populated, players can join the game by entering `play.factorio.dakara.stream` directly in the Factorio client!

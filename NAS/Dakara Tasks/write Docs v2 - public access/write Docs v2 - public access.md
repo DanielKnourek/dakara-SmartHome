@@ -137,10 +137,18 @@ docker compose down && docker compose up -d
 Configure your local client to tunnel traffic for the new public subdomains:
 
 1.  **Update Client Config [[Dakara Tasks/write Docs v2 - public access/frpc.toml|frpc.toml]]:**
-    SSH into TrueNAS Scale and edit the client config file:
+    Instead of editing the configuration manually with secrets, you can use the **1Password CLI (`op`)** to dynamically inject your vault secrets and write the production config file onto your server:
 ```sh
-sudo vim /mnt/ssd-data0/app-data/frp/frpc.toml
+# 1. Run the secret injection (change directory and generate populated config in one line)
+cd "Dakara Tasks/write Docs v2 - public access" && op inject -f -i "frpc.toml" -o "frpc.secret.toml"
+
+# 2. Copy to the FRP config path and secure permissions for the apps:apps (568:568) user
+sudo mkdir -p /mnt/ssd-data0/app-data/frp
+sudo cp frpc.secret.toml /mnt/ssd-data0/app-data/frp/frpc.toml
+sudo chmod 660 /mnt/ssd-data0/app-data/frp/frpc.toml
+sudo chown apps:apps /mnt/ssd-data0/app-data/frp/frpc.toml
 ```
+    *(Alternatively, you can edit it manually with `sudo vim /mnt/ssd-data0/app-data/frp/frpc.toml` if needed).*
 
 	Add HTTPS SNI routing rules for your public-facing apps. You have two ways to configure this:
 

@@ -1,9 +1,9 @@
 # /mnt/ssd-data0/app-data/frp/frpc.toml
-serverAddr = "op://Private/home1912.dakara.stream ORACLE/adress"
+serverAddr = "{{ op://Private/home1912.dakara.stream ORACLE/adress }}"
 serverPort = 7000
 
 auth.method = "token"
-auth.token = "op://Private/home1912.dakara.stream ORACLE/FRPS tunnel/auth.token"
+auth.token = "{{ op://Private/home1912.dakara.stream ORACLE/FRPS tunnel/auth.token }}"
 
 [[proxies]]
 name = "minecraft-java"
