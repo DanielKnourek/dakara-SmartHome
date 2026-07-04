@@ -57,7 +57,7 @@ flowchart TB
 
     subgraph Row2 ["TrueNAS (Home)"]
         direction RL
-        FRPC["FRP Client: frpc (TrueNAS)"] -- "Local Forwarding" --> MC["Minecraft Container: 25565"]
+        FRPC["FRP Client: frpc (TrueNAS)"] -- "Local Forwarding" --> MC["Minecraft Container: 25535"]
     end
 
     FRPS -- "FRP Tunnel (Port 7000)" --> FRPC
@@ -304,8 +304,8 @@ auth.token = "op://Private/home1912.dakara.stream ORACLE/FRPS tunnel/auth.token"
 [[proxies]]
 name = "minecraft-java"
 type = "tcp"
-localIP = "192.168.0.21" # Host/bond0 IP where Minecraft container exposes port 25565
-localPort = 25565
+localIP = "192.168.0.21" # Host/bond0 IP where Minecraft container exposes port 25535
+localPort = 25535
 remotePort = 25565
 ```
 > [!NOTE]

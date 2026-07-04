@@ -80,7 +80,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "icons",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -204,7 +204,7 @@
       "templater-obsidian:Templater": false
     }
   },
-  "active": "de35fad516eb9692",
+  "active": "592e22878ee8a787",
   "lastOpenFiles": [
     "Dakara Tasks/write Docs v2 - oracle tunnel/write Docs v2 - oracle tunnel.md",
     "Dakara Tasks/write Docs v2 - public access/write Docs v2 - public access.md",

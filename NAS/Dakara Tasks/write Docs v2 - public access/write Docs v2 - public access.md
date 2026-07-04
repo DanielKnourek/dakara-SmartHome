@@ -177,7 +177,7 @@ auth.token = "YOUR_FRP_SECRET_TOKEN"
 name = "minecraft-java"
 type = "tcp"
 localIP = "192.168.0.21"
-localPort = 25565
+localPort = 25535
 remotePort = 25565
 
 [[proxies]]
@@ -210,7 +210,7 @@ auth.token = "YOUR_FRP_SECRET_TOKEN"
 name = "minecraft-java"
 type = "tcp"
 localIP = "192.168.0.21"
-localPort = 25565
+localPort = 25535
 remotePort = 25565
 
 [[proxies]]
